@@ -16,9 +16,10 @@ router = APIRouter()
 
 @router.get("/preview/{build_id}", response_class=HTMLResponse, include_in_schema=False)
 async def serve_preview(build_id: str) -> HTMLResponse:
-    job = await store.get(build_id)
+    clean_id = build_id.replace(".html", "")
+    job = await store.get(clean_id)
     if not job:
-        raise HTTPException(status_code=404, detail="Build not found")
+        raise HTTPException(status_code=404, detail=f"Build not found for ID: {clean_id}")
     if job.status != BuildStatus.done:
         raise HTTPException(status_code=425, detail="Build not complete yet")
 
