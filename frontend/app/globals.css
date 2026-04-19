@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 10px;
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+    --shadow-elevated: 0 4px 16px -2px rgb(0 0 0 / 0.10), 0 2px 6px -2px rgb(0 0 0 / 0.06);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  ::selection {
+    background: rgb(99 102 241 / 0.15);
+    color: inherit;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-[var(--radius)] border border-zinc-100;
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-elevated {
+    @apply bg-white rounded-[var(--radius)] border border-zinc-100;
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius)] bg-zinc-900 text-white
+           text-sm font-medium transition-all duration-150 hover:bg-zinc-800 active:scale-[0.98]
+           disabled:opacity-40 disabled:pointer-events-none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius)] bg-white border
+           border-zinc-200 text-zinc-700 text-sm font-medium transition-all duration-150
+           hover:bg-zinc-50 hover:border-zinc-300 active:scale-[0.98];
+  }
+
+  .input {
+    @apply w-full px-3 py-2.5 rounded-[var(--radius)] border border-zinc-200 bg-white text-sm
+           text-zinc-900 placeholder:text-zinc-400 transition-colors duration-150
+           focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400;
+  }
+
+  .section-label {
+    @apply text-[11px] font-semibold uppercase tracking-widest text-zinc-400;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f4f4f5 25%, #e4e4e7 50%, #f4f4f5 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgb(99 102 241 / 0.35); }
+  70% { box-shadow: 0 0 0 8px rgb(99 102 241 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(99 102 241 / 0); }
+}
+
+.pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
