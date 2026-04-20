@@ -1,11 +1,18 @@
 # Python
 __pycache__/
+backend/__pycache__/
+frontend/__pycache__/
 *.py[cod]
 venv/
+backend/venv/
 .env
+backend/.env
+frontend/.env
+
 
 # dependencies
 /node_modules
+frontend/node_modules
 /.pnp
 .pnp.js
 
@@ -14,6 +21,7 @@ venv/
 
 # next.js
 /.next/
+frontend/.next/
 /out/
 
 # production

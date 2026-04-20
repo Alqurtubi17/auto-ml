@@ -1,6 +1,6 @@
-from .build_store import store
-from .template_registry import TEMPLATES, TEMPLATE_MAP
+# backend/services/__init__.py
+from .build_store import store, db
 from .build_pipeline import run_build
-from .site_generator import generate_html
+from .ml_generator import generate_deployment_code
 
-__all__ = ["store", "TEMPLATES", "TEMPLATE_MAP", "run_build", "generate_html"]
+__all__ = ["store", "db", "run_build", "generate_deployment_code"]

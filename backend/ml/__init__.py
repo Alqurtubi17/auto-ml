@@ -1,3 +1,4 @@
-from .engine import train_for_template
+# backend/ml/__init__.py
+from .engine import train_model
 
-__all__ = ["train_for_template"]
+__all__ = ["train_model"]

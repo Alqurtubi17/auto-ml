@@ -1,27 +1,15 @@
 from __future__ import annotations
 from enum import Enum
-from typing import Any
 from pydantic import BaseModel, Field, ConfigDict
 from pydantic.alias_generators import to_camel
 import datetime
 
-
-# ── Base ──────────────────────────────────────────────────────────────────────
-
+# Base
 class CamelModel(BaseModel):
-    """Base for all API schemas.
-    - alias_generator: serialises field names as camelCase (templateId, mlFeatures…)
-    - populate_by_name: accepts both snake_case (Python code) and camelCase (JSON body)
-    FastAPI's jsonable_encoder calls model_dump(by_alias=True) automatically, so
-    all HTTP responses are camelCase; no extra configuration needed.
-    """
-    model_config = ConfigDict(
-        alias_generator=to_camel,
-        populate_by_name=True,
-    )
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, protected_namespaces=())
 
 
-# ── Enums ─────────────────────────────────────────────────────────────────────
+# Enums
 
 class TemplateCategory(str, Enum):
     saas        = "saas"
@@ -35,17 +23,7 @@ class TemplateCategory(str, Enum):
     agency      = "agency"
     startup     = "startup"
 
-
-class BuildStatus(str, Enum):
-    idle       = "idle"
-    queued     = "queued"
-    training   = "training"
-    generating = "generating"
-    done       = "done"
-    error      = "error"
-
-
-# ── Template schemas ──────────────────────────────────────────────────────────
+# Template schemas
 
 class SectionConfig(CamelModel):
     id:     str
@@ -64,18 +42,10 @@ class TemplateSchema(CamelModel):
     estimated_build_sec: int
 
 
-# ── Build schemas ─────────────────────────────────────────────────────────────
-
-class MLMetrics(CamelModel):
-    model_config = ConfigDict(
-        alias_generator=to_camel,
-        populate_by_name=True,
-        protected_namespaces=(),
-    )
-    accuracy:   float | None = None
-    latency_ms: int   | None = None
-    model_size: str   | None = None
-
+class MLTaskType(str, Enum):
+    classification = "classification"
+    regression     = "regression"
+    clustering     = "clustering"
 
 class BuildJob(CamelModel):
     id:           str
@@ -88,6 +58,41 @@ class BuildJob(CamelModel):
     logs:         list[str]               = Field(default_factory=list)
     ml_metrics:   MLMetrics         | None = None
 
+class BuildStatus(str, Enum):
+    idle       = "idle"
+    queued     = "queued"
+    training   = "training"
+    generating = "generating"
+    done       = "done"
+    error      = "error"
+
+class MLMetrics(CamelModel):
+    accuracy: float | None = None
+    latency_ms: int | None = None
+    model_size: str | None = None
+    algorithm_name: str | None = None
+    chart_data: list[dict] = []
+
+class GenerateMLRequest(CamelModel):
+    project_name: str = Field(min_length=1, max_length=120)
+    task_type: MLTaskType
+    data_file: str | None = None
+    algorithm: str 
+
+class MLProjectResponse(CamelModel):
+    id: str
+    project_name: str
+    task_type: MLTaskType
+    status: BuildStatus
+    progress: int = 0
+    accuracy: float | None = None
+    metrics: MLMetrics | None = None
+    hugging_face_url: str | None = None
+    generated_code: str | None = None
+    ui_schema: dict | None = None
+    created_at: datetime.datetime
+    completed_at: datetime.datetime | None = None
+    logs: list[str] = Field(default_factory=list)
 
 # ── Request / response wrappers ───────────────────────────────────────────────
 
@@ -105,3 +110,6 @@ class BuildListResponse(CamelModel):
 
 class TemplateListResponse(CamelModel):
     templates: list[TemplateSchema]
+
+
+

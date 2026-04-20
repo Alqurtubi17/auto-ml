@@ -1,39 +1,69 @@
-import asyncio
+# backend/routers/builds.py
 from fastapi import APIRouter, BackgroundTasks, HTTPException
-from schemas import BuildJob, BuildListResponse, GenerateRequest
+from pydantic import BaseModel
+from schemas import MLProjectResponse, GenerateMLRequest
 from services.build_store import store
-from services.template_registry import TEMPLATE_MAP
 from services.build_pipeline import run_build
+import os, joblib, pandas as pd
 
 router = APIRouter()
 
-
-@router.post("", response_model=BuildJob, status_code=202)
-async def create_build(req: GenerateRequest, bg: BackgroundTasks) -> BuildJob:
-    if req.template_id not in TEMPLATE_MAP:
-        raise HTTPException(status_code=422, detail=f"Unknown template_id: '{req.template_id}'")
+@router.post("", response_model=MLProjectResponse, status_code=202)
+async def create_build(req: GenerateMLRequest, bg: BackgroundTasks):
+    # 1. Simpan project ke Database
     job = await store.create(req)
-    bg.add_task(run_build, job, req)
+    
+    # 2. Lempar tugas training ke background task
+    bg.add_task(run_build, job.id, req)
+    
     return job
 
-
-@router.get("", response_model=BuildListResponse)
-async def list_builds() -> BuildListResponse:
+@router.get("", response_model=dict)
+async def list_builds():
+    # Ambil semua history dari Neon.tech
     builds = await store.list_all()
-    return BuildListResponse(builds=sorted(builds, key=lambda b: b.created_at, reverse=True))
+    return {"builds": builds}
 
-
-@router.get("/{build_id}", response_model=BuildJob)
-async def get_build(build_id: str) -> BuildJob:
+@router.get("/{build_id}", response_model=MLProjectResponse)
+async def get_build(build_id: str):
     job = await store.get(build_id)
     if not job:
-        raise HTTPException(status_code=404, detail=f"Build '{build_id}' not found")
+        raise HTTPException(status_code=404, detail="ML Project not found")
     return job
 
+class PredictRequest(BaseModel):
+    features: dict[str, float]
 
-@router.post("/{build_id}/cancel", response_model=dict)
-async def cancel_build(build_id: str) -> dict:
-    ok = await store.cancel(build_id)
-    if not ok:
-        raise HTTPException(status_code=409, detail="Build cannot be cancelled (not in progress or not found)")
-    return {"ok": True}
+@router.post("/{build_id}/predict")
+async def predict_model(build_id: str, req: PredictRequest):
+    job = await store.get(build_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Project tidak ditemukan")
+    if job.status.value != "done":
+        raise HTTPException(status_code=400, detail="Model belum selesai dilatih")
+
+    model_path = f"/tmp/models/model_{build_id}.joblib"
+    if not os.path.exists(model_path):
+        raise HTTPException(status_code=404, detail="File model fisik tidak ditemukan di server")
+
+    try:
+        # Muat model dan lakukan prediksi
+        model = joblib.load(model_path)
+        
+        # Konversi input dictionary ke DataFrame satu baris
+        input_df = pd.DataFrame([req.features])
+        prediction = model.predict(input_df)
+        
+        # Format hasil berdasarkan tipe tugas
+        result_value = prediction[0]
+        if job.task_type.value == "classification":
+            formatted_result = f"Kelas {int(result_value)}"
+        elif job.task_type.value == "regression":
+            formatted_result = f"{float(result_value):.4f}"
+        else:
+            formatted_result = f"Cluster {int(result_value)}"
+
+        return {"status": "success", "prediction": formatted_result, "raw_value": float(result_value)}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gagal melakukan inferensi: {str(e)}")

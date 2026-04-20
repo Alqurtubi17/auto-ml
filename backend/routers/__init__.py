@@ -1,3 +1,2 @@
-from . import templates, builds
-
-__all__ = ["templates", "builds"]
+# backend/routers/__init__.py
+from . import builds

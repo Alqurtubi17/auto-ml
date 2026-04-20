@@ -1,23 +1,27 @@
+# backend/main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import get_settings
-from routers import templates, builds
-from routers.preview import router as preview_router
+from routers import builds
+from services.build_store import db
 
-settings = get_settings()  
-print(f"DEBUG: CORS Origins are: {settings.cors_origins}")
-
+settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Menyala: Koneksi ke Neon.tech
+    if not db.is_connected():
+        await db.connect()
     yield
-
+    # Mati: Putus koneksi
+    if db.is_connected():
+        await db.disconnect()
 
 app = FastAPI(
-    title="WebForge AI",
-    version="1.0.0",
+    title="WebForge AI - ML Platform",
+    version="2.0.0",
     docs_url="/docs",
     lifespan=lifespan,
 )
@@ -30,10 +34,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(templates.router, prefix="/api/templates", tags=["templates"])
+# Hanya aktifkan router builds (ML)
 app.include_router(builds.router, prefix="/api/builds", tags=["builds"])
-app.include_router(preview_router, tags=["preview"])
-
 
 @app.get("/healthz")
 def health() -> dict:

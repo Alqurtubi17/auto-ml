@@ -1,60 +1,113 @@
+# backend/services/build_store.py
 from __future__ import annotations
-import asyncio
 import datetime
-import uuid
-from schemas import BuildJob, BuildStatus, GenerateRequest, MLMetrics
+from prisma import Prisma
+from schemas import MLProjectResponse, MLTaskType, BuildStatus, GenerateMLRequest
 
+# Inisialisasi klien Prisma
+db = Prisma()
 
 class BuildStore:
-    """Thread-safe in-memory job registry. Swap with Redis for production."""
+    """Persistent ML Job registry using Prisma & Neon.tech."""
 
-    def __init__(self) -> None:
-        self._lock = asyncio.Lock()
-        self._jobs: dict[str, BuildJob] = {}
+    async def connect(self):
+        if not db.is_connected():
+            await db.connect()
 
-    async def create(self, req: GenerateRequest) -> BuildJob:
-        job = BuildJob(
-            id=str(uuid.uuid4()),
-            template_id=req.template_id,
-            status=BuildStatus.queued,
-            progress=0,
-            created_at=datetime.datetime.now(datetime.timezone.utc),
-            logs=[f"[queued] Job created for template '{req.template_id}'"],
+    async def create(self, req: GenerateMLRequest) -> MLProjectResponse:
+        await self.connect()
+        # Simpan project baru ke database Neon
+        project = await db.mlproject.create(
+            data={
+                "projectName": req.project_name,
+                "taskType": req.task_type.value,
+                "status": BuildStatus.queued.value,
+                "progress": 0,
+                "logs": [f"[queued] Job created for task '{req.task_type.value}'"]
+            }
         )
-        async with self._lock:
-            self._jobs[job.id] = job
-        return job
+        return self._format_response(project)
 
-    async def get(self, job_id: str) -> BuildJob | None:
-        return self._jobs.get(job_id)
+    async def get(self, job_id: str) -> MLProjectResponse | None:
+        await self.connect()
+        project = await db.mlproject.find_unique(where={"id": job_id})
+        if not project:
+            return None
+        return self._format_response(project)
 
-    async def list_all(self) -> list[BuildJob]:
-        return list(self._jobs.values())
+    async def list_all(self) -> list[MLProjectResponse]:
+        await self.connect()
+        projects = await db.mlproject.find_many(order={"createdAt": "desc"})
+        return [self._format_response(p) for p in projects]
 
-    async def update(self, job_id: str, **kwargs) -> BuildJob | None:
-        async with self._lock:
-            job = self._jobs.get(job_id)
-            if not job:
-                return None
-            updated = job.model_copy(update=kwargs)
-            self._jobs[job_id] = updated
-            return updated
+    async def update(self, job_id: str, **kwargs) -> MLProjectResponse | None:
+        await self.connect()
+        
+        # Mapping nama variabel Python (snake_case) ke kolom Prisma (camelCase)
+        data_to_update = {}
+        if "status" in kwargs: data_to_update["status"] = kwargs["status"].value
+        if "progress" in kwargs: data_to_update["progress"] = kwargs["progress"]
+        if "accuracy" in kwargs: data_to_update["accuracy"] = kwargs["accuracy"]
+        if "generated_code" in kwargs: data_to_update["generatedCode"] = kwargs["generated_code"]
+        if "hugging_face_url" in kwargs: data_to_update["huggingFaceUrl"] = kwargs["hugging_face_url"]
+        if "ui_schema" in kwargs: data_to_update["uiSchema"] = kwargs["ui_schema"]
+        
+        if "completed_at" in kwargs: 
+            data_to_update["completedAt"] = kwargs["completed_at"]
+
+        project = await db.mlproject.update(
+            where={"id": job_id},
+            data=data_to_update
+        )
+        return self._format_response(project)
 
     async def append_log(self, job_id: str, line: str) -> None:
-        async with self._lock:
-            job = self._jobs.get(job_id)
-            if job:
-                self._jobs[job_id] = job.model_copy(update={"logs": job.logs + [line]})
+        await self.connect()
+        project = await db.mlproject.find_unique(where={"id": job_id})
+        if project:
+            new_logs = project.logs + [line]
+            await db.mlproject.update(
+                where={"id": job_id},
+                data={"logs": new_logs}
+            )
 
     async def cancel(self, job_id: str) -> bool:
-        async with self._lock:
-            job = self._jobs.get(job_id)
-            if not job or job.status in (BuildStatus.done, BuildStatus.error):
-                return False
-            self._jobs[job_id] = job.model_copy(
-                update={"status": BuildStatus.error, "logs": job.logs + ["[cancelled] Job cancelled by user."]}
-            )
-            return True
+        await self.connect()
+        project = await db.mlproject.find_unique(where={"id": job_id})
+        if not project or project.status in (BuildStatus.done.value, BuildStatus.error.value):
+            return False
+        
+        await db.mlproject.update(
+            where={"id": job_id},
+            data={
+                "status": BuildStatus.error.value,
+                "logs": project.logs + ["[cancelled] Job cancelled by user."]
+            }
+        )
+        return True
 
+    def _format_response(self, prisma_model) -> MLProjectResponse:
+        """Helper untuk mengubah model database menjadi Pydantic Response"""
+        ui_schema = prisma_model.uiSchema
+        metrics = None
+        if ui_schema and isinstance(ui_schema, dict) and "_metrics" in ui_schema:
+            # Create a copy to avoid mutating the original if it's cached
+            ui_schema = dict(ui_schema)
+            metrics = ui_schema.pop("_metrics")
+            
+        return MLProjectResponse(
+            id=prisma_model.id,
+            project_name=prisma_model.projectName,
+            task_type=MLTaskType(prisma_model.taskType),
+            status=BuildStatus(prisma_model.status),
+            progress=prisma_model.progress,
+            accuracy=prisma_model.accuracy,
+            hugging_face_url=prisma_model.huggingFaceUrl,
+            generated_code=prisma_model.generatedCode,
+            ui_schema=ui_schema,
+            metrics=metrics,
+            created_at=prisma_model.createdAt,
+            logs=prisma_model.logs
+        )
 
 store = BuildStore()
