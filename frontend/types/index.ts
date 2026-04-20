@@ -5,7 +5,7 @@ export type TemplateCategory =
   | "realestate" | "healthcare" | "education" | "agency" | "startup";
 
 export type BuildStatus =
-  | "idle" | "queued" | "training" | "generating" | "done" | "error";
+  | "idle" | "queued" | "training" | "generating" | "done" | "error" | "stopped";
 
 export interface TemplateSection {
   id:     string;
@@ -28,6 +28,8 @@ export interface MLMetrics {
   accuracy:  number | null;
   latencyMs: number | null;          // backend: latency_ms → alias: latencyMs
   modelSize: string | null;          // backend: model_size → alias: modelSize
+  algorithmName?: string | null;
+  chartData?: Array<{ name: string; value: number }> | null;
 }
 
 export interface BuildJob {
@@ -48,4 +50,31 @@ export interface GenerateRequest {
   primaryColor:    string;           // backend: primary_color → alias: primaryColor
   userDescription: string;           // backend: user_description → alias: userDescription
   dataFile?:       string;
+}
+
+export type MLTaskType = "classification" | "regression" | "clustering";
+
+export interface MLProject {
+  id:          string;
+  projectName: string;
+  taskType:    MLTaskType;
+  status:      BuildStatus;
+  progress:    number;
+  createdAt:   string;               
+  completedAt: string | null;        
+  huggingFaceUrl: string | null;
+  generatedCode: string | null;
+  uiSchema: Record<string, any> | null;
+  logs:        string[];
+  metrics:   MLMetrics | null;
+  accuracy?: number | null;
+}
+
+export interface GenerateMLRequest {
+  projectName:     string;
+  taskType:        MLTaskType;
+  algorithm:       string;
+  dataFile?:       File | null;
+  targetColumn?:   string;
+  featureColumns?: string[];
 }

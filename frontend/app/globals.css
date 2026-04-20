@@ -2,85 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-teal: #48435c;
+  --color-cream: #61e786;
+  --color-gold: #9792e3;
+  --color-rust: #5a5766;
+  --color-maroon: #48435c;
+
+  --bg-app: #edffec;
+  /* Softened cream */
+  --text-main: #48435c;
+  --text-muted: #5a5766;
+  --border-subtle: rgba(72, 67, 92, 0.1);
+}
+
 @layer base {
-  :root {
-    --radius: 10px;
-    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
-    --shadow-elevated: 0 4px 16px -2px rgb(0 0 0 / 0.10), 0 2px 6px -2px rgb(0 0 0 / 0.06);
-  }
-
-  * { box-sizing: border-box; }
-
-  html { scroll-behavior: smooth; }
-
-  ::selection {
-    background: rgb(99 102 241 / 0.15);
-    color: inherit;
+  body {
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    min-height: 100vh;
+    @apply selection:bg-[#61e786]/30 selection:text-[#48435c];
   }
 }
 
 @layer components {
-  .card {
-    @apply bg-white rounded-[var(--radius)] border border-zinc-100;
-    box-shadow: var(--shadow-card);
-  }
-
-  .card-elevated {
-    @apply bg-white rounded-[var(--radius)] border border-zinc-100;
-    box-shadow: var(--shadow-elevated);
-  }
-
-  .badge {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
-  }
-
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius)] bg-zinc-900 text-white
-           text-sm font-medium transition-all duration-150 hover:bg-zinc-800 active:scale-[0.98]
-           disabled:opacity-40 disabled:pointer-events-none;
+    @apply bg-[var(--color-teal)] text-[var(--color-cream)] font-bold transition-all hover:opacity-90 active:scale-95 shadow-lg shadow-teal-900/10;
   }
 
-  .btn-secondary {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius)] bg-white border
-           border-zinc-200 text-zinc-700 text-sm font-medium transition-all duration-150
-           hover:bg-zinc-50 hover:border-zinc-300 active:scale-[0.98];
+  .card-elegant {
+    @apply bg-white border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(51, 92, 103, 0.04)];
   }
 
-  .input {
-    @apply w-full px-3 py-2.5 rounded-[var(--radius)] border border-zinc-200 bg-white text-sm
-           text-zinc-900 placeholder:text-zinc-400 transition-colors duration-150
-           focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400;
+  /* Standardized Typography */
+  .text-label {
+    @apply text-[11px] font-bold uppercase tracking-wider text-[var(--color-teal)] opacity-60;
   }
 
-  .section-label {
-    @apply text-[11px] font-semibold uppercase tracking-widest text-zinc-400;
+  .text-title {
+    @apply text-xl font-black tracking-tight text-[var(--color-maroon)];
+  }
+
+  .text-body {
+    @apply text-sm leading-relaxed text-[var(--text-muted)];
+  }
+
+  .text-value {
+    @apply text-sm font-bold text-[var(--text-main)];
   }
 }
 
-@layer utilities {
-  .text-balance { text-wrap: balance; }
-
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.skeleton {
-  background: linear-gradient(90deg, #f4f4f5 25%, #e4e4e7 50%, #f4f4f5 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-amber-100 rounded-full hover:bg-amber-200;
 }
 
-@keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgb(99 102 241 / 0.35); }
-  70% { box-shadow: 0 0 0 8px rgb(99 102 241 / 0); }
-  100% { box-shadow: 0 0 0 0 rgb(99 102 241 / 0); }
+/* Proportional overrides */
+input,
+select,
+textarea {
+  @apply text-sm px-4 py-2.5 rounded-lg border border-amber-100/50 bg-white/50 focus:bg-white focus:border-[var(--color-gold)] outline-none transition-all;
 }
 
-.pulse-ring {
-  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+button {
+  @apply text-sm font-bold;
 }

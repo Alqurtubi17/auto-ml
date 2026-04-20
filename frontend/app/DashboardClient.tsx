@@ -4,33 +4,33 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { MLTaskType } from "@/types";
-import { Network, BarChart3, Database, ArrowRight, GitMerge, Loader2, Server, Boxes, Settings2 } from "lucide-react";
+import { 
+  Network, BarChart3, Boxes, ArrowRight, Loader2, 
+  FileUp, Check, Info, Sparkles, Database, Target, GitBranch
+} from "lucide-react";
+import { toast } from "sonner";
 
-// Konfigurasi Algoritma per Task
 const ALGORITHMS = {
   classification: [
-    { id: "auto", name: "Auto-Optimize (Best Model)", desc: "Latih semua algoritma dan pilih yang terbaik." },
-    { id: "rf_clf", name: "Random Forest", desc: "Ensemble robust untuk data kompleks." },
-    { id: "svm_clf", name: "Support Vector Machine", desc: "Pemisahan margin optimal." },
-    { id: "lr_clf", name: "Logistic Regression", desc: "Analisis probabilistik linear." },
-    { id: "gb_clf", name: "Gradient Boosting", desc: "Reduksi error sekuensial." },
-    { id: "knn_clf", name: "K-Nearest Neighbors", desc: "Klasifikasi berbasis jarak terdekat." },
+    { id: "auto", name: "Champion Engine", desc: "Auto-optimize & select winner" },
+    { id: "rf_clf", name: "Random Forest", desc: "Ensemble tree learning" },
+    { id: "svm_clf", name: "SVM", desc: "Optimal separation" },
+    { id: "lr_clf", name: "Logistic Reg", desc: "Classic probability" },
+    { id: "gb_clf", name: "Gradient Boost", desc: "Sequential optimization" },
   ],
   regression: [
-    { id: "auto", name: "Auto-Optimize (Best Model)", desc: "Latih semua algoritma dan pilih yang terbaik." },
-    { id: "rf_reg", name: "Random Forest Regressor", desc: "Estimasi non-linear akurat." },
-    { id: "svm_reg", name: "Support Vector Regression", desc: "Regresi dengan toleransi margin." },
-    { id: "lr_reg", name: "Linear Regression", desc: "Garis tren dasar linier." },
-    { id: "ridge_reg", name: "Ridge Regression", desc: "Regresi linier dengan penalti L2." },
-    { id: "gb_reg", name: "Gradient Boosting Regressor", desc: "Optimasi prediksi bertahap." },
+    { id: "auto", name: "Champion Engine", desc: "Auto-optimize & select winner" },
+    { id: "rf_reg", name: "Random Forest", desc: "Non-linear estimation" },
+    { id: "svm_reg", name: "SVR", desc: "Margin-based regression" },
+    { id: "lr_reg", name: "Linear Reg", desc: "Fundamental trends" },
+    { id: "gb_reg", name: "Gradient Boost", desc: "Iterative refinement" },
   ],
   clustering: [
-    { id: "auto", name: "Auto-Optimize (Best Model)", desc: "Latih semua algoritma dan pilih yang terbaik." },
-    { id: "kmeans", name: "K-Means", desc: "Partisi berbasis titik pusat (centroid)." },
-    { id: "dbscan", name: "DBSCAN", desc: "Pengelompokan berbasis kepadatan." },
-    { id: "agglomerative", name: "Agglomerative", desc: "Hierarki klaster bottom-up." },
-    { id: "gmm", name: "Gaussian Mixture", desc: "Distribusi probabilitas klaster." },
-    { id: "birch", name: "BIRCH", desc: "Klastering efisien untuk dataset besar." },
+    { id: "auto", name: "Champion Engine", desc: "Auto-optimize & select winner" },
+    { id: "kmeans", name: "K-Means", desc: "Centroid partitioning" },
+    { id: "dbscan", name: "DBSCAN", desc: "Density grouping" },
+    { id: "agglomerative", name: "Agglomerative", desc: "Hierarchical merging" },
+    { id: "gmm", name: "Gaussian Mix", desc: "Probabilistic density" },
   ]
 };
 
@@ -38,180 +38,269 @@ export default function DashboardClient() {
   const router = useRouter();
   const [projectName, setProjectName] = useState("");
   const [taskType, setTaskType] = useState<MLTaskType>("classification");
-  
-  // State baru untuk menyimpan algoritma yang dipilih
-  const [selectedAlgo, setSelectedAlgo] = useState(ALGORITHMS["classification"][0].id);
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [selectedAlgo, setSelectedAlgo] = useState("auto");
+  const [dataFile, setDataFile] = useState<File | null>(null);
+  const [columns, setColumns] = useState<string[]>([]);
+  const [selectedX, setSelectedX] = useState<string[]>([]);
+  const [selectedY, setSelectedY] = useState("");
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [loadTxt, setLoadTxt] = useState("Initializing...");
 
-  // Otomatis reset algoritma jika Task berubah (tanpa useEffect, langsung dilampirkan ke handler)
-  const handleTaskChange = (newTask: MLTaskType) => {
-    setTaskType(newTask);
-    setSelectedAlgo(ALGORITHMS[newTask][0].id);
-  };
+  useEffect(() => {
+    if (!loading) return;
+    const t = ["Analyzing Data...", "Training Engines...", "Optimizing Weights...", "Finalizing Dashboard..."];
+    let i = 0;
+    const iv = setInterval(() => { i = (i + 1) % t.length; setLoadTxt(t[i]); }, 1200);
+    return () => clearInterval(iv);
+  }, [loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!projectName.trim() || !selectedAlgo) return;
-    
-    setIsSubmitting(true);
-    setErrorMsg("");
-
+    if (!projectName.trim()) return;
+    setLoading(true);
     try {
-      // Mengirim taskType dan algorithm ke backend
-      const job = await api.builds.create({ 
-        projectName, 
-        taskType,
-        algorithm: selectedAlgo // <--- Parameter baru
-      });
+      const job = await api.builds.create({ projectName, taskType, algorithm: selectedAlgo, dataFile, featureColumns: selectedX, targetColumn: selectedY });
+      toast.success("Job initialized successfully.");
       router.push(`/build/${job.id}`);
     } catch (err: any) {
-      setErrorMsg(err.message || "Gagal menghubungi server FastAPI.");
-      setIsSubmitting(false);
+      toast.error(err.message || "Engine failure.");
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-12">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-extrabold text-emerald-950 tracking-tight leading-tight">
-          Inisialisasi Model Prediktif.
-        </h1>
-        <p className="text-emerald-800/60 font-medium text-sm leading-relaxed">
-          Konfigurasi parameter dasar dan pilih algoritma untuk memulai proses pelatihan.
-        </p>
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-700">
+      <header className="space-y-1">
+        <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-[#61e786] text-[#9792e3] text-[10px] font-black uppercase tracking-[0.2em] border border-[#9792e3]/20">
+           <Sparkles className="w-3 h-3" /> Initialize Experiment
+        </div>
+        <h1 className="text-title text-3xl">Studio Center</h1>
+        <p className="text-body text-sm font-medium opacity-60">Configure your predictive pipeline and deploy the champion model.</p>
       </header>
 
-      <div className="bg-white rounded-[2rem] shadow-sm border border-emerald-100/50 flex flex-col lg:flex-row overflow-hidden relative z-10">
-        
-        {/* PANEL KIRI: Form Input */}
-        <div className="w-full lg:w-3/5 p-6 sm:p-10 flex flex-col justify-center bg-white relative border-b lg:border-b-0 lg:border-r border-emerald-50">
-          <div className="max-w-md w-full mx-auto space-y-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
-              
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-emerald-700 uppercase tracking-widest flex items-center gap-2">
-                  1. Identitas Eksperimen
-                </label>
-                <input
-                  type="text"
-                  value={projectName}
-                  onChange={(e) => setProjectName(e.target.value)}
-                  placeholder="Masukkan nama eksperimen..."
-                  className="w-full bg-white border-2 border-emerald-100 rounded-xl px-4 py-3 text-sm text-emerald-950 font-semibold focus:border-emerald-500 transition-all outline-none placeholder:text-emerald-200 hover:border-emerald-200"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-emerald-700 uppercase tracking-widest flex items-center gap-2">
-                  2. Arsitektur Algoritma
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {[
-                    { id: "classification", label: "Klasifikasi", icon: Network, desc: "Kategori diskrit." },
-                    { id: "regression", label: "Regresi", icon: BarChart3, desc: "Nilai kontinu." },
-                    { id: "clustering", label: "Clustering", icon: Boxes, desc: "Data tanpa label." }
-                  ].map((task) => (
-                    <button
-                      key={task.id}
-                      type="button"
-                      onClick={() => handleTaskChange(task.id as MLTaskType)}
-                      disabled={isSubmitting}
-                      className={`relative p-4 rounded-xl border-2 text-left transition-all duration-300 flex flex-row sm:flex-col items-center sm:items-start gap-3 sm:gap-0 ${
-                        taskType === task.id 
-                          ? "border-emerald-500 bg-emerald-50 ring-2 ring-emerald-500/10" 
-                          : "border-emerald-50 bg-white hover:border-emerald-100"
-                      }`}
-                    >
-                      <task.icon className={`w-5 h-5 sm:mb-2 shrink-0 ${taskType === task.id ? "text-emerald-600" : "text-emerald-300"}`} />
-                      <div>
-                        <div className={`font-bold text-xs sm:text-sm ${taskType === task.id ? "text-emerald-950" : "text-emerald-800"}`}>{task.label}</div>
-                        <div className="text-[10px] sm:text-[11px] text-emerald-600/70 mt-0.5 sm:mt-1 font-medium">{task.desc}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* BARU: PEMILIHAN ALGORITMA SPESIFIK */}
-              <div className="space-y-3 pt-2">
-                <label className="text-[11px] font-bold text-emerald-700 uppercase tracking-widest flex items-center gap-2">
-                  <Settings2 className="w-3.5 h-3.5" /> 3. Spesifikasi Engine
-                </label>
-                <div className="bg-emerald-50/50 p-1.5 rounded-xl border border-emerald-100/60 grid grid-cols-1 gap-1">
-                  {ALGORITHMS[taskType].map((algo) => (
-                    <button
-                      key={algo.id}
-                      type="button"
-                      onClick={() => setSelectedAlgo(algo.id)}
-                      disabled={isSubmitting}
-                      className={`px-4 py-3 rounded-lg text-left transition-all flex flex-col justify-center ${
-                        selectedAlgo === algo.id 
-                          ? (algo.id === "auto" ? "bg-emerald-600 border-emerald-600 shadow-md shadow-emerald-600/20" : "bg-white border-emerald-200 shadow-sm")
-                          : (algo.id === "auto" ? "bg-emerald-100/50 border border-emerald-200/50 hover:bg-emerald-200/50" : "border border-transparent hover:bg-emerald-100/50")
-                      }`}
-                    >
-                      <div className={`text-xs font-bold flex items-center gap-2 ${
-                          selectedAlgo === algo.id 
-                            ? (algo.id === "auto" ? "text-white" : "text-emerald-900")
-                            : (algo.id === "auto" ? "text-emerald-800" : "text-emerald-800/70")
-                        }`}>
-                        {algo.name}
-                        {algo.id === "auto" && <div className={`text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm ${selectedAlgo === algo.id ? "bg-emerald-500/50 text-white" : "bg-emerald-200/50 text-emerald-700"}`}>Champion</div>}
-                      </div>
-                      {selectedAlgo === algo.id && (
-                         <div className={`text-[10px] font-medium mt-0.5 ${algo.id === "auto" ? "text-emerald-50" : "text-emerald-600/80"}`}>{algo.desc}</div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {errorMsg && (
-                <div className="p-3 bg-red-50 border border-red-100 text-red-700 text-xs font-semibold rounded-xl">
-                  {errorMsg}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isSubmitting || !projectName.trim()}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-100 text-white font-bold py-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/20 flex justify-center items-center gap-2"
-              >
-                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : "Mulai Pelatihan Model"}
-                {!isSubmitting && <ArrowRight className="w-4 h-4" />}
-              </button>
-            </form>
+      {/* Compact Stepper */}
+      <div className="flex gap-3">
+        {[1, 2].map(s => (
+          <div key={s} className="flex-1">
+            <div className={`h-1.5 rounded-full transition-all duration-500 ${step >= s ? "bg-[#48435c]" : "bg-[#48435c]/10"}`} />
+            <p className={`text-[10px] font-black uppercase tracking-widest mt-2 ${step >= s ? "opacity-100 text-[#48435c]" : "opacity-40"}`}>
+              {s === 1 ? "Configuration" : "Optimization"}
+            </p>
           </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <div className="lg:col-span-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {step === 1 ? (
+              <div className="space-y-6 animate-in slide-in-from-left-4 duration-500">
+                {/* Identity */}
+                <div className="bg-white border border-[#48435c]/10 p-6 rounded-[1.5rem] shadow-sm space-y-4">
+                  <label className="text-label flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#48435c] text-[#61e786] flex items-center justify-center text-[9px]">1</span>
+                    Identity
+                  </label>
+                  <input
+                    type="text" value={projectName} onChange={e => setProjectName(e.target.value)}
+                    placeholder="Project Name..."
+                    className="w-full bg-[#61e786]/10 border border-[#48435c]/10 rounded-xl px-5 py-3 text-lg font-black text-[#48435c] outline-none focus:bg-white focus:border-[#9792e3] transition-all"
+                    required
+                  />
+                </div>
+
+                {/* Task */}
+                <div className="bg-white border border-[#48435c]/10 p-6 rounded-[1.5rem] shadow-sm space-y-4">
+                  <label className="text-label flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#48435c] text-[#61e786] flex items-center justify-center text-[9px]">2</span>
+                    Predictive Task
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {([
+                      { id: "classification", label: "Class", icon: Network },
+                      { id: "regression", label: "Regress", icon: BarChart3 },
+                      { id: "clustering", label: "Cluster", icon: Boxes }
+                    ] as const).map(t => (
+                      <button
+                        key={t.id} type="button"
+                        onClick={() => { setTaskType(t.id); setSelectedAlgo("auto"); }}
+                        className={`p-4 rounded-xl border-2 text-left transition-all ${
+                          taskType === t.id 
+                            ? "border-[#9792e3] bg-[#61e786]/30 shadow-md" 
+                            : "border-[#48435c]/5 bg-white hover:border-[#48435c]/20"
+                        }`}
+                      >
+                        <t.icon className={`w-5 h-5 mb-2 transition-colors ${taskType === t.id ? "text-[#9792e3]" : "text-[#48435c]/20"}`} />
+                        <h4 className="font-black text-[#48435c] text-[13px]">{t.label}</h4>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Data */}
+                <div className="bg-white border border-[#48435c]/10 p-6 rounded-[1.5rem] shadow-sm space-y-4">
+                   <label className="text-label flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#48435c] text-[#61e786] flex items-center justify-center text-[9px]">3</span>
+                    Data Source
+                  </label>
+                  <label className={`block p-8 rounded-xl border-2 border-dashed transition-all text-center relative cursor-pointer z-0 ${
+                    dataFile ? "bg-[#61e786]/20 border-[#9792e3]" : "bg-[#61e786]/5 border-[#48435c]/10 hover:border-[#48435c]/40"
+                  }`}>
+                    <input type="file" accept=".csv" className="hidden"
+                      onChange={e => {
+                        const f = e.target.files?.[0] || null; setDataFile(f);
+                        if (f) {
+                          const r = new FileReader();
+                          r.onload = ev => {
+                            const txt = ev.target?.result as string;
+                            if (txt) { const h = txt.split('\n')[0].split(',').map(s => s.trim().replace(/["']/g, '')); setColumns(h.filter(Boolean)); setSelectedX([]); setSelectedY(""); }
+                          };
+                          r.readAsText(f);
+                        }
+                      }} />
+                    {dataFile ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Check className="w-5 h-5 text-emerald-500" />
+                        <h4 className="text-[#48435c] font-black text-xs">{dataFile.name}</h4>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <FileUp className="w-6 h-6 text-[#48435c]/20" />
+                        <h4 className="text-[#48435c] font-black text-xs">Drop CSV Dataset</h4>
+                        <p className="text-[10px] font-bold text-[#48435c]/20">Limit: 50MB</p>
+                      </div>
+                    )}
+                  </label>
+
+                  {columns.length > 0 && (
+                    <div className="p-4 bg-[#61e786]/10 border border-[#48435c]/5 rounded-xl space-y-6 animate-in slide-in-from-top-2 duration-300">
+                       <div className="space-y-2">
+                          <p className="text-[10px] font-black text-[#48435c]/40 uppercase tracking-widest">Feature Vars (X)</p>
+                          <div className="flex flex-wrap gap-1.5">
+                             {columns.map(c => (
+                               <button key={`x-${c}`} type="button"
+                                 onClick={() => setSelectedX(p => p.includes(c) ? p.filter(x => x !== c) : [...p, c])}
+                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                                   selectedX.includes(c) ? "bg-[#48435c] text-[#61e786]" : "bg-white text-[#48435c]/40"
+                                 }`}>
+                                 {c}
+                               </button>
+                             ))}
+                          </div>
+                       </div>
+                       {taskType !== "clustering" && (
+                         <div className="pt-4 border-t border-[#48435c]/5 space-y-2">
+                            <p className="text-[10px] font-black text-[#48435c]/40 uppercase tracking-widest">Target Var (Y)</p>
+                            <div className="flex flex-wrap gap-1.5">
+                               {columns.map(c => (
+                                 <button key={`y-${c}`} type="button" onClick={() => setSelectedY(c)}
+                                   className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                                     selectedY === c ? "bg-[#9792e3] text-white" : "bg-white text-[#48435c]/40"
+                                   }`}>
+                                   {c}
+                                 </button>
+                               ))}
+                            </div>
+                         </div>
+                       )}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button" onClick={() => setStep(2)}
+                  disabled={!projectName.trim() || (columns.length > 0 && (selectedX.length === 0 || (taskType !== "clustering" && !selectedY)))}
+                  className="w-full h-14 bg-[#48435c] text-[#61e786] rounded-xl flex items-center justify-center gap-2 disabled:opacity-20 transition-all text-xs font-black uppercase tracking-widest shadow-lg"
+                >
+                  Verify Configuration <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+                 <div className="bg-white border border-[#48435c]/10 p-6 rounded-[1.5rem] shadow-sm space-y-6">
+                    <div className="flex items-center justify-between">
+                      <label className="text-label flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-[#48435c] text-[#61e786] flex items-center justify-center text-[9px]">4</span>
+                        Algorithm Selection
+                      </label>
+                      <button onClick={() => setStep(1)} className="text-[10px] font-black text-[#9792e3] hover:underline uppercase tracking-widest">Edit</button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                       {ALGORITHMS[taskType].map(a => (
+                         <button
+                           key={a.id} type="button" onClick={() => setSelectedAlgo(a.id)}
+                           className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+                             selectedAlgo === a.id 
+                               ? "border-[#9792e3] bg-[#48435c] text-[#61e786] shadow-md" 
+                               : "border-[#48435c]/5 bg-white hover:border-[#48435c]/10"
+                           }`}
+                         >
+                           <div className="text-left">
+                             <h4 className="font-black text-[13px] flex items-center gap-2">
+                               {a.name}
+                               {a.id === "auto" && <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${selectedAlgo === a.id ? "bg-[#9792e3] text-white" : "bg-[#61e786] text-[#9792e3]"}`}>AUTO</span>}
+                             </h4>
+                             <p className={`text-[10px] font-bold ${selectedAlgo === a.id ? "text-[#61e786]/50" : "text-[#48435c]/30"}`}>{a.desc}</p>
+                           </div>
+                           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                             selectedAlgo === a.id ? "border-[#9792e3] bg-[#9792e3] text-white" : "border-[#48435c]/5"
+                           }`}>
+                             {selectedAlgo === a.id && <Check className="w-3 h-3" />}
+                           </div>
+                         </button>
+                       ))}
+                    </div>
+                 </div>
+
+                 <div className="p-8 bg-[#48435c] rounded-[2rem] text-[#61e786] flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
+                    <div className="space-y-1 relative z-10">
+                      <h4 className="text-lg font-black tracking-tight">Ready for Calibration</h4>
+                      <p className="text-[#61e786]/40 text-[10px] font-black uppercase tracking-widest">Compute units standby.</p>
+                    </div>
+                    <button
+                      type="submit" disabled={loading}
+                      className="h-12 px-8 bg-[#61e786] text-[#48435c] rounded-xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> {loadTxt}</> : <><Sparkles className="w-4 h-4" /> Start Engine</>}
+                    </button>
+                 </div>
+              </div>
+            )}
+          </form>
         </div>
 
-        {/* PANEL KANAN: Pipeline Info */}
-        <div className="w-full lg:w-2/5 bg-emerald-50/30 p-6 sm:p-10 flex flex-col justify-center relative">
-          {/* ... (Panel Pipeline Kanan tetap sama seperti versi sebelumnya) ... */}
-          <div className="max-w-sm mx-auto w-full space-y-6">
-            <h3 className="text-emerald-700 font-bold tracking-widest uppercase text-[10px] flex items-center gap-2">
-              <span className="w-8 h-[2px] bg-emerald-200" /> System Pipeline
-            </h3>
-            
-            {[
-              { label: "Data Provisioning", icon: Database, desc: "Penyiapan dataset dan pemilihan arsitektur." },
-              { label: "Algorithmic Fitting", icon: GitMerge, desc: "Eksekusi komputasi model yang diplih." },
-              { label: "Live Deployment", icon: Server, desc: "Pembuatan dashboard analitik otomatis.", primary: true }
-            ].map((step, idx) => (
-              <div key={idx} className={`p-5 rounded-xl border transition-all ${step.primary ? 'bg-emerald-600 border-emerald-200 text-white shadow-md shadow-emerald-600/20' : 'bg-white border-emerald-100 text-emerald-950'}`}>
-                <div className="flex items-center gap-3 mb-2">
-                  <step.icon className={`w-4 h-4 ${step.primary ? 'text-white' : 'text-emerald-600'}`} />
-                  <h4 className="font-bold text-sm">{step.label}</h4>
-                </div>
-                <p className={`text-[12px] leading-relaxed pl-7 ${step.primary ? 'text-emerald-50' : 'text-emerald-800/70'}`}>{step.desc}</p>
+        {/* Sidebar Summary */}
+        <div className="lg:col-span-4 sticky top-10 space-y-4">
+           <div className="bg-white border border-[#48435c]/10 p-6 rounded-[1.5rem] shadow-sm space-y-4">
+              <p className="text-label">Summary</p>
+              <div className="space-y-3">
+                 <Row label="Identity" value={projectName || "—"} icon={Target} />
+                 <Row label="Task" value={taskType.toUpperCase()} icon={GitBranch} />
+                 <Row label="Source" value={dataFile ? "CSV" : "Synthetic"} icon={Database} />
               </div>
-            ))}
-          </div>
+           </div>
+
+           <div className="p-6 bg-[#61e786]/30 border border-[#9792e3]/20 rounded-[1.5rem] space-y-2">
+              <Info className="w-5 h-5 text-[#9792e3]" />
+              <h4 className="text-[10px] font-black text-[#48435c] uppercase tracking-widest">Compute Spec</h4>
+              <p className="text-[10px] text-[#48435c]/60 font-bold leading-relaxed">System will perform automated data sanitation and hyperparameter tuning.</p>
+           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Row({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center gap-2">
+         <Icon className="w-4 h-4 text-[#48435c]/10" />
+         <span className="text-[10px] font-bold text-[#48435c]/40 uppercase tracking-tight">{label}</span>
+      </div>
+      <span className="text-[11px] font-black text-[#48435c] truncate max-w-[100px]">{value}</span>
     </div>
   );
 }
