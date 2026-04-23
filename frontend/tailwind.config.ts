@@ -9,43 +9,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Kita "bajak" warna emerald agar menyesuaikan dengan palet baru
+        // Otomatisasi mapping warna ke Muted Teal & Slate
         emerald: {
-          50: "#edffec",  // Honeydew (Paling terang untuk background panel)
-          100: "#d1facf", // Turunan Honeydew untuk border tipis
-          200: "#a3f4b0",
-          300: "#61e786", // Light Green (Untuk aksen / ring focus)
-          400: "#50c772",
-          500: "#9792e3", // Soft Periwinkle (Untuk ikon aktif)
-          600: "#5a5766", // Charcoal (Untuk tombol utama & elemen aktif)
-          700: "#4d4a57",
-          800: "#48435c", // Vintage Grape (Untuk teks sekunder)
-          900: "#3d394e",
-          950: "#2a2736", // Teks paling gelap
+          50: "#f4f5f7",  // Soft Slate (Background luar)
+          100: "#e9ecef", // Border tipis
+          300: "#5ca4a9", // Soft Pine (Aksen hover/ring)
+          400: "#3aafa9",
+          500: "#2b7a78", // Muted Teal (Tombol utama)
+          600: "#2b7a78", // Muted Teal (Override komponen lama)
+          950: "#17252a", // Deep Slate (Teks judul tebal)
         },
-        // Kita sesuaikan juga zinc agar seirama dengan Charcoal & Vintage Grape
         zinc: {
-          50: "#edffec",  // Background aplikasi
-          100: "#e5ece4",
-          800: "#5a5766", // Charcoal (Teks utama)
-          900: "#48435c", // Vintage Grape (Teks tebal/judul)
-          950: "#2a2736",
-        },
-        pastel: {
-          green: "#edffec", // Di-map ke Honeydew
-          mint: "#61e786",  // Di-map ke Light Green
-          cream: "#ffffff",
-          surface: "#ffffff",
+          50: "#f4f5f7",
+          800: "#4b5d67", // Muted Gray (Teks sekunder)
+          900: "#17252a", // Deep Slate
         }
       },
       boxShadow: {
-        // Shadow disesuaikan warnanya agar menggunakan tone Vintage Grape / Charcoal
-        'soft': '0 10px 40px -10px rgba(72, 67, 92, 0.1)',
-        'float': '0 20px 50px -20px rgba(72, 67, 92, 0.15)',
-      },
-      fontFamily: {
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "monospace"],
+        'soft': '0 10px 40px -10px rgba(23, 37, 42, 0.05)',
+        'float': '0 20px 50px -20px rgba(23, 37, 42, 0.08)',
       },
     },
   },

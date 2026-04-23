@@ -3,58 +3,56 @@
 @tailwind utilities;
 
 :root {
-  --color-teal: #48435c;
-  --color-cream: #61e786;
-  --color-gold: #9792e3;
-  --color-rust: #5a5766;
-  --color-maroon: #48435c;
+  /* Palette Muted & Low-Strain (Anti-Silau) */
+  --color-base: #f4f5f7;
+  /* Soft Slate: Abu-abu sangat lembut untuk background utama */
+  --color-accent: #2b7a78;
+  /* Muted Teal: Hijau toska redup yang elegan untuk tombol */
+  --color-text-dark: #17252a;
+  /* Deep Slate: Kontras tinggi tapi lebih soft dari hitam pekat */
+  --color-text-gray: #4b5d67;
+  /* Muted Gray: Abu-abu kebiruan untuk teks sekunder */
+  --color-accent-soft: #5ca4a9;
+  /* Soft Pine: Aksen lembut untuk border dan hover */
 
-  --bg-app: #edffec;
-  /* Softened cream */
-  --text-main: #48435c;
-  --text-muted: #5a5766;
-  --border-subtle: rgba(72, 67, 92, 0.1);
+  /* Mapping Tema Clean */
+  --bg-app: var(--color-base);
+  --text-main: var(--color-text-dark);
+  --text-muted: var(--color-text-gray);
+  --border-subtle: rgba(23, 37, 42, 0.08);
+  /* Border transparan yang sangat halus */
 }
 
 @layer base {
   body {
     background-color: var(--bg-app);
     color: var(--text-main);
-    min-height: 100vh;
-    @apply selection:bg-[#61e786]/30 selection:text-[#48435c];
+    font-feature-settings: "cv02", "cv03", "cv04", "gray";
+    @apply selection:bg-[#5ca4a9]/20 selection:text-[#17252a];
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-[var(--color-teal)] text-[var(--color-cream)] font-bold transition-all hover:opacity-90 active:scale-95 shadow-lg shadow-teal-900/10;
+    @apply bg-[var(--color-accent)] text-white px-6 py-2.5 rounded-xl font-bold transition-all hover:bg-[#236462] hover:shadow-lg hover:shadow-[#2b7a78]/20 active:scale-95;
   }
 
   .card-elegant {
-    @apply bg-white border border-[var(--border-subtle)] shadow-[0_4px_12px_rgba(51, 92, 103, 0.04)];
+    @apply bg-white border border-[var(--border-subtle)] shadow-[0_8px_30px_rgb(0, 0, 0, 0.03)] rounded-[2rem] p-8;
   }
 
-  /* Standardized Typography */
   .text-label {
-    @apply text-[11px] font-bold uppercase tracking-wider text-[var(--color-teal)] opacity-60;
+    @apply text-[10px] font-bold uppercase tracking-widest text-[var(--color-accent-soft)];
   }
 
   .text-title {
-    @apply text-xl font-black tracking-tight text-[var(--color-maroon)];
-  }
-
-  .text-body {
-    @apply text-sm leading-relaxed text-[var(--text-muted)];
-  }
-
-  .text-value {
-    @apply text-sm font-bold text-[var(--text-main)];
+    @apply text-2xl font-black tracking-tight text-[var(--color-text-dark)];
   }
 }
 
+/* Scrollbar Modern */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -62,16 +60,11 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-amber-100 rounded-full hover:bg-amber-200;
+  @apply bg-[#5ca4a9]/30 rounded-full hover:bg-[#5ca4a9]/50;
 }
 
-/* Proportional overrides */
 input,
 select,
 textarea {
-  @apply text-sm px-4 py-2.5 rounded-lg border border-amber-100/50 bg-white/50 focus:bg-white focus:border-[var(--color-gold)] outline-none transition-all;
-}
-
-button {
-  @apply text-sm font-bold;
+  @apply bg-white/80 border border-[var(--border-subtle)] rounded-xl px-4 py-3 text-sm transition-all focus:ring-2 focus:ring-[#2b7a78]/20 focus:border-[var(--color-accent)] outline-none text-[var(--color-text-dark)];
 }

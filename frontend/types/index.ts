@@ -8,73 +8,98 @@ export type BuildStatus =
   | "idle" | "queued" | "training" | "generating" | "done" | "error" | "stopped";
 
 export interface TemplateSection {
-  id:     string;
-  type:   "hero" | "features" | "pricing" | "cta" | "testimonials" | "gallery" | "contact" | "faq";
+  id: string;
+  type: "hero" | "features" | "pricing" | "cta" | "testimonials" | "gallery" | "contact" | "faq";
   config: Record<string, unknown>;
+
 }
 
 export interface TemplateConfig {
-  id:                 string;
-  name:               string;
-  category:           TemplateCategory;
-  description:        string;
-  accent:             string;
-  sections:           TemplateSection[];
-  mlFeatures:         string[];      // backend: ml_features  → alias: mlFeatures
-  estimatedBuildSec:  number;        // backend: estimated_build_sec → alias: estimatedBuildSec
+  id: string;
+  name: string;
+  category: TemplateCategory;
+  description: string;
+  accent: string;
+  sections: TemplateSection[];
+  mlFeatures: string[];      // backend: ml_features  → alias: mlFeatures
+  estimatedBuildSec: number;        // backend: estimated_build_sec → alias: estimatedBuildSec
 }
 
 export interface MLMetrics {
-  accuracy:  number | null;
+  accuracy: number | null;
   latencyMs: number | null;          // backend: latency_ms → alias: latencyMs
   modelSize: string | null;          // backend: model_size → alias: modelSize
   algorithmName?: string | null;
   chartData?: Array<{ name: string; value: number }> | null;
+  detailedMetrics?: Array<{ name: string; value: number }> | null;
+  scatterData?: Array<{ x: number; y: number; cluster: number }> | null;
 }
 
 export interface BuildJob {
-  id:          string;
-  templateId:  string;               // backend: template_id → alias: templateId
-  status:      BuildStatus;
-  progress:    number;
-  createdAt:   string;               // backend: created_at → alias: createdAt
+  id: string;
+  templateId: string;               // backend: template_id → alias: templateId
+  status: BuildStatus;
+  progress: number;
+  createdAt: string;               // backend: created_at → alias: createdAt
   completedAt: string | null;        // backend: completed_at → alias: completedAt
-  outputUrl:   string | null;        // backend: output_url → alias: outputUrl
-  logs:        string[];
-  mlMetrics:   MLMetrics | null;     // backend: ml_metrics → alias: mlMetrics
+  outputUrl: string | null;        // backend: output_url → alias: outputUrl
+  logs: string[];
+  mlMetrics: MLMetrics | null;     // backend: ml_metrics → alias: mlMetrics
 }
 
 export interface GenerateRequest {
-  templateId:      string;           // backend: template_id → alias: templateId
-  projectName:     string;           // backend: project_name → alias: projectName
-  primaryColor:    string;           // backend: primary_color → alias: primaryColor
+  templateId: string;           // backend: template_id → alias: templateId
+  projectName: string;           // backend: project_name → alias: projectName
+  primaryColor: string;           // backend: primary_color → alias: primaryColor
   userDescription: string;           // backend: user_description → alias: userDescription
-  dataFile?:       string;
+  dataFile?: string;
 }
 
 export type MLTaskType = "classification" | "regression" | "clustering";
 
 export interface MLProject {
-  id:          string;
+  id: string;
   projectName: string;
-  taskType:    MLTaskType;
-  status:      BuildStatus;
-  progress:    number;
-  createdAt:   string;               
-  completedAt: string | null;        
+  taskType: MLTaskType;
+  status: BuildStatus;
+  progress: number;
+  createdAt: string;
+  completedAt: string | null;
   huggingFaceUrl: string | null;
   generatedCode: string | null;
   uiSchema: Record<string, any> | null;
-  logs:        string[];
-  metrics:   MLMetrics | null;
+  logs: string[];
+  metrics: MLMetrics | null;
   accuracy?: number | null;
 }
 
 export interface GenerateMLRequest {
-  projectName:     string;
-  taskType:        MLTaskType;
-  algorithm:       string;
-  dataFile?:       File | null;
-  targetColumn?:   string;
+  projectName: string;
+  taskType: MLTaskType;
+  algorithm: string;
+  dataFile?: File | null;
+  targetColumn?: string;
   featureColumns?: string[];
+  nanStrategy?: "drop" | "mean" | "median";
+  scalingStrategy?: "none" | "x" | "y" | "all";
+  useTuning?: boolean;
+  hyperparameters?: Record<string, string>;
+}
+
+export interface SystemStats {
+  totalBuilds: number;
+  avgAccuracy: number;
+  cpuUsage: number;
+  totalCores: number;
+  activeCores: number;
+  storageUsed: string;
+  storageLimit: string;
+  storagePercent: number;
+  computeStatus: string;
+  activeKeys: number;
+  region: string;
+  nodeId: string;
+  networkLatency: number;
+  uptime: string;
+  userInitials: string;
 }

@@ -22,10 +22,19 @@ export const api = {
       formData.append("project_name", body.projectName);
       formData.append("task_type", body.taskType);
       formData.append("algorithm", body.algorithm);
-      
+
+      if (body.nanStrategy) formData.append("nan_strategy", body.nanStrategy);
+      if (body.scalingStrategy) formData.append("scaling_strategy", body.scalingStrategy);
+
       if (body.targetColumn) formData.append("target_column", body.targetColumn);
       if (body.featureColumns && body.featureColumns.length > 0) {
         formData.append("feature_columns", body.featureColumns.join(","));
+      }
+      if (body.useTuning !== undefined) {
+        formData.append("use_tuning", String(body.useTuning));
+      }
+      if (body.hyperparameters) {
+        formData.append("custom_params", JSON.stringify(body.hyperparameters));
       }
       if (body.dataFile) {
         formData.append("file", body.dataFile);
@@ -34,7 +43,6 @@ export const api = {
       const res = await fetch(`${BASE}/api/v1/builds`, {
         method: "POST",
         body: formData,
-        // Omit Content-Type to let browser set boundary automatically
       });
       if (!res.ok) {
         const detail = await res.text().catch(() => res.statusText);
@@ -42,9 +50,9 @@ export const api = {
       }
       return res.json() as Promise<MLProject>;
     },
-    get:    (id: string) => 
+    get: (id: string) =>
       apiFetch<MLProject>(`/api/v1/builds/${id}`),
-    list:   () => 
+    list: () =>
       apiFetch<{ builds: MLProject[] }>("/api/v1/builds"),
     predict: (id: string, features: Record<string, number>) =>
       apiFetch<{ status: string; prediction: string; raw_value: number }>(`/api/v1/builds/${id}/predict`, {
@@ -56,7 +64,7 @@ export const api = {
     stop: (id: string) =>
       apiFetch<{ status: string }>(`/api/v1/builds/${id}/stop`, { method: "POST" }),
     updateConfig: (id: string, config: Record<string, any>) =>
-      apiFetch<{ status: string }>(`/api/v1/builds/${id}/config`, { 
+      apiFetch<{ status: string }>(`/api/v1/builds/${id}/config`, {
         method: "PUT",
         body: JSON.stringify(config)
       }),
