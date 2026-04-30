@@ -33,7 +33,7 @@ export const DEFAULT_PARAMS: Record<string, Record<string, string>> = {
   knn_reg: { n_neighbors: "3, 5, 7, 9" },
 };
 
-export default function DashboardClient() {
+export default function DashboardClient({ user }: { user: any }) {
   const router = useRouter();
   
   const [projectName, setProjectName] = useState("");
@@ -57,6 +57,9 @@ export default function DashboardClient() {
   const [encodeLabels, setEncodeLabels] = useState(true);
   const [nanStrategy, setNanStrategy] = useState<"drop" | "mean" | "median">("mean");
   const [scalingStrategy, setScalingStrategy] = useState<"none" | "x" | "y" | "all">("none");
+
+  const userName = user?.name || "Pelanggan";
+  const isAdmin = user?.role === "ADMIN";
 
   useEffect(() => {
     setSelectedAlgo("auto");
@@ -167,9 +170,17 @@ export default function DashboardClient() {
     setLoading(true);
     try {
       const job = await api.builds.create({ 
-        projectName, taskType, algorithm: selectedAlgo, dataFile, 
-        featureColumns: selectedX, targetColumn: selectedY,
-        nanStrategy, scalingStrategy, useTuning, hyperparameters: customParams
+        projectName, 
+        taskType, 
+        algorithm: selectedAlgo, 
+        dataFile, 
+        featureColumns: selectedX, 
+        targetColumn: selectedY,
+        nanStrategy, 
+        scalingStrategy, 
+        useTuning, 
+        hyperparameters: customParams,
+        userId: user?.email || "anonim" 
       });
       
       toast.success("Deployment successful.");

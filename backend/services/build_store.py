@@ -20,6 +20,7 @@ class BuildStore:
     async def create(self, req: GenerateMLRequest) -> MLProjectResponse:
         project = await db.mlproject.create(
             data={
+                "userId": req.user_id,
                 "projectName": req.project_name,
                 "taskType": req.task_type.value,
                 "status": BuildStatus.queued.value,

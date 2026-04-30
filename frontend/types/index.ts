@@ -30,6 +30,7 @@ export interface MLMetrics {
   latencyMs: number | null;          // backend: latency_ms → alias: latencyMs
   modelSize: string | null;          // backend: model_size → alias: modelSize
   algorithmName?: string | null;
+  bestParameters?: Record<string, any> | null;
   chartData?: Array<{ name: string; value: number }> | null;
   detailedMetrics?: Array<{ name: string; value: number }> | null;
   scatterData?: Array<{ x: number; y: number; cluster: number }> | null;
@@ -84,6 +85,7 @@ export interface GenerateMLRequest {
   scalingStrategy?: "none" | "x" | "y" | "all";
   useTuning?: boolean;
   hyperparameters?: Record<string, string>;
+  userId?: string;
 }
 
 export interface SystemStats {

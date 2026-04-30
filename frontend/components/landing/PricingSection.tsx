@@ -3,7 +3,11 @@
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-export default function PricingSection() {
+export default function PricingSection({ settings }: { settings?: any }) {
+  // Ambil harga dari DB, konversi ke format 'k' (misal 99000 -> 99)
+  const rawPrice = parseInt(settings?.ENTERPRISE_PRICE || "99000");
+  const displayPrice = isNaN(rawPrice) ? "99" : (rawPrice / 1000);
+
   return (
     <section id="pricing" className="w-full bg-transparent py-32 md:py-40">
       <div className="max-w-4xl mx-auto px-6 lg:px-8 flex flex-col items-center">
@@ -25,7 +29,7 @@ export default function PricingSection() {
             <h3 className="text-xl font-black text-zinc-900 mb-2">Lifetime Access</h3>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold text-zinc-400 line-through">Rp150k</span>
-              <span className="text-5xl font-black text-zinc-900">Rp99k</span>
+              <span className="text-5xl font-black text-zinc-900">Rp{displayPrice}k</span>
             </div>
             <p className="text-zinc-400 font-bold mt-1">/forever</p>
           </div>

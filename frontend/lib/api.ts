@@ -1,4 +1,3 @@
-// frontend/lib/api.ts
 import { MLProject, GenerateMLRequest } from "@/types";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -22,6 +21,8 @@ export const api = {
       formData.append("project_name", body.projectName);
       formData.append("task_type", body.taskType);
       formData.append("algorithm", body.algorithm);
+
+      if (body.userId) formData.append("userId", body.userId);
 
       if (body.nanStrategy) formData.append("nan_strategy", body.nanStrategy);
       if (body.scalingStrategy) formData.append("scaling_strategy", body.scalingStrategy);

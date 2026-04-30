@@ -59,7 +59,8 @@ async def create_build(
         nan_strategy=nan_strategy,
         scaling_strategy=scaling_strategy,
         use_tuning=use_tuning,
-        hyperparameters=parsed_params
+        hyperparameters=parsed_params,
+        user_id=user_id
     )
 
     job = await store.create(req)

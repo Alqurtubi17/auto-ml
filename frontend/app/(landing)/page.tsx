@@ -1,11 +1,10 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowRight, PlayCircle, FileUp, Wrench, Cpu, LayoutDashboard, Download, BarChart3, CheckCircle2, FileJson } from "lucide-react";
-import ThreeBackground from "@/components/ThreeBackground";
-import DocsAccordion from "@/components/DocsAccordion";
-import LandingFooter from "@/components/LandingFooter";
-import PricingSection from "@/components/PricingSection";
+import { getSystemSettings } from "@/lib/settings";
+import ThreeBackground from "@/components/landing/ThreeBackground";
+import DocsAccordion from "@/components/landing/DocsAccordion";
+import LandingFooter from "@/components/landing/LandingFooter";
+import PricingSection from "@/components/landing/PricingSection";
 import LarikLogo from "@/components/LarikLogo";
 
 const PIPELINE_STEPS = [
@@ -22,7 +21,13 @@ const PRACTICAL_FEATURES = [
   { icon: FileJson, title: "Streamlit & Gradio Ready", description: "We auto-generate the UI scripts so you can showcase your model instantly." },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const settings = await getSystemSettings();
+  
+  const rawPrice = parseInt(settings?.ENTERPRISE_PRICE || "99000");
+  const displayPrice = isNaN(rawPrice) ? "99" : (rawPrice / 1000);
+  const adminEmail = settings?.ADMIN_EMAIL || "solutionist1226@gmail.com";
+
   return (
     <div suppressHydrationWarning className="relative min-h-screen bg-transparent font-sans text-zinc-900 overflow-x-hidden selection:bg-emerald-200 selection:text-emerald-900">
       <ThreeBackground />
@@ -83,7 +88,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <PricingSection />
+        <PricingSection settings={settings} />
 
         <section id="features" className="w-full bg-transparent py-40">
           <div className="flex flex-col items-center text-center mb-32">
@@ -116,12 +121,17 @@ export default function LandingPage() {
           </div>
           <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
             <h2 className="text-5xl md:text-7xl font-black text-zinc-900 tracking-tighter mb-12 leading-[0.95]">Ready to generate <br /> your Web App?</h2>
-            <p className="text-zinc-500 font-medium text-xl mb-20">Lifetime Access for only Rp99k. Secure your account before prices return to normal.</p>
+            
+            <p className="text-zinc-500 font-medium text-xl mb-20">
+              Lifetime Access for only Rp{displayPrice}k. Secure your account before prices return to normal.
+            </p>
+            
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
               <Link href="/login?mode=register" className="w-full sm:w-auto px-16 py-6 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-black uppercase tracking-[0.25em] rounded-2xl transition-all shadow-2xl active:scale-[0.98]">
                 Secure Lifetime Access
               </Link>
-              <a href="mailto:solutionist1226@gmail.com" className="w-full sm:w-auto px-16 py-6 bg-zinc-900 text-white text-xs font-black uppercase tracking-[0.25em] rounded-2xl transition-all shadow-xl active:scale-[0.98]">
+              
+              <a href={`mailto:${adminEmail}`} className="w-full sm:w-auto px-16 py-6 bg-zinc-900 text-white text-xs font-black uppercase tracking-[0.25em] rounded-2xl transition-all shadow-xl active:scale-[0.98]">
                 Contact Support
               </a>
             </div>
@@ -130,7 +140,7 @@ export default function LandingPage() {
 
       </main>
 
-      <LandingFooter />
+      <LandingFooter settings={settings} />
     </div>
   );
 }

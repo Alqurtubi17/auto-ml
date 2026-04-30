@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { X, Phone, Mail, MapPin } from "lucide-react";
-import LarikLogo from "./LarikLogo";
+import LarikLogo from "../LarikLogo"; 
 
-export default function LandingFooter() {
+export default function LandingFooter({ settings }: { settings?: any }) {
   const [activeModal, setActiveModal] = useState<"privacy" | "terms" | null>(null);
+
+  const appName = settings?.APP_NAME || "Larik AI";
+  const adminWa = settings?.ADMIN_WA || "085123700712";
+  const adminEmail = settings?.ADMIN_EMAIL || "solutionist1226@gmail.com";
+  const companyAddress = settings?.COMPANY_ADDRESS || "Surabaya, Indonesia";
 
   return (
     <>
@@ -39,16 +44,16 @@ export default function LandingFooter() {
             <div>
               <h4 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400 mb-6">Contact</h4>
               <ul className="space-y-4 text-sm font-bold text-zinc-600">
-                <li className="flex items-center gap-3"><Phone className="w-4 h-4 text-emerald-500" /> 085123700712</li>
-                <li className="flex items-center gap-3"><Mail className="w-4 h-4 text-emerald-500" /> solutionist1226@gmail.com</li>
-                <li className="flex items-center gap-3"><MapPin className="w-4 h-4 text-emerald-500" /> Surabaya, Indonesia</li>
+                <li className="flex items-center gap-3"><Phone className="w-4 h-4 text-emerald-500" /> {adminWa}</li>
+                <li className="flex items-center gap-3"><Mail className="w-4 h-4 text-emerald-500" /> {adminEmail}</li>
+                <li className="flex items-center gap-3"><MapPin className="w-4 h-4 text-emerald-500" /> {companyAddress}</li>
               </ul>
             </div>
           </div>
 
           <div className="pt-8 border-t border-zinc-100 flex flex-col md:row items-center justify-between gap-4">
             <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest">
-              © 2026 LarikAI Architecture. All rights reserved.
+              © {new Date().getFullYear()} {appName} Architecture. All rights reserved.
             </p>
           </div>
         </div>
@@ -68,12 +73,12 @@ export default function LandingFooter() {
             <div className="p-8 overflow-y-auto text-zinc-600 text-sm font-medium leading-relaxed space-y-4">
               {activeModal === "privacy" ? (
                 <>
-                  <p>At Larik AI, your privacy is our core priority. We only process the data you upload for the purpose of machine learning model training.</p>
+                  <p>At {appName}, your privacy is our core priority. We only process the data you upload for the purpose of machine learning model training.</p>
                   <p>Once your model is generated and the session expires, your raw datasets are automatically purged from our temporary processing units. We do not sell or share your data with third parties.</p>
                 </>
               ) : (
                 <>
-                  <p>By using Larik AI, you agree to our fair use policy. You are responsible for ensuring that the datasets you upload comply with local and international regulations.</p>
+                  <p>By using {appName}, you agree to our fair use policy. You are responsible for ensuring that the datasets you upload comply with local and international regulations.</p>
                   <p>Models generated on our platform are your intellectual property. However, we do not guarantee 100% accuracy as model performance depends heavily on the quality of the input data provided.</p>
                 </>
               )}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -9,7 +10,7 @@ const deploymentUrl = process.env.NODE_ENV === "production" ? "https://larikai.c
 export const metadata: Metadata = {
   title: {
     default: "Larik AI | Enterprise ML Architecture",
-    template: "%s | Larik AI"
+    template: "%s"
   },
   icons: {
     icon: "/icon.png",
@@ -54,7 +55,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>{children}
+        <Toaster 
+          position="top-center" 
+          richColors 
+          duration={4000} 
+          closeButton 
+        />
+      </body>
     </html>
   );
 }

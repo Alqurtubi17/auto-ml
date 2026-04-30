@@ -47,6 +47,7 @@ class GenerateMLRequest(CamelModel):
     scaling_strategy: str = "none"
     use_tuning: bool = False
     hyperparameters: dict | None = None
+    user_id: str | None = None
 
 class MLProjectResponse(CamelModel):
     id: str

@@ -8,14 +8,19 @@ import { UploadButton } from "@/lib/uploadthing";
 import { toast } from "sonner";
 import { CheckCircle2, ShieldCheck, Wallet, Receipt, MessageCircle, UploadCloud } from "lucide-react";
 
-export default function CheckoutClient({ userName }: { userName: string }) {
-  const [totalAmount] = useState(99000);
+export default function CheckoutClient({ userName, settings }: { userName: string, settings?: any }) {
+  // Mengambil harga dinamis untuk QRIS dan tagihan
+  const dynamicPrice = parseInt(settings?.ENTERPRISE_PRICE || "99000");
+  const appName = settings?.APP_NAME || "Larik AI";
+  
+  const [totalAmount] = useState(isNaN(dynamicPrice) ? 99000 : dynamicPrice);
   const staticQRIS = process.env.NEXT_PUBLIC_STATIC_QRIS || "";
   const dynamicQRIS = generateDynamicQRIS(staticQRIS, totalAmount);
   const [isUploaded, setIsUploaded] = useState(false);
 
-  const waNumber = "6285123700712";
-  const waMessage = encodeURIComponent(`Hello Larik AI Admin, I am ${userName}. I have completed the QRIS payment of Rp 99.000 for the Enterprise License. Please process my activation.`);
+  // Link WA Dinamis
+  const waNumber = settings?.ADMIN_WA || "6285123700712";
+  const waMessage = encodeURIComponent(`Hello ${appName} Admin, I am ${userName}. I have completed the QRIS payment of Rp ${totalAmount.toLocaleString("id-ID")} for the Enterprise License. Please process my activation.`);
   const waLink = `https://wa.me/${waNumber}?text=${waMessage}`;
 
   return (
@@ -27,7 +32,7 @@ export default function CheckoutClient({ userName }: { userName: string }) {
           <div className="mb-2">
             <h1 className="text-[2.5rem] font-extrabold tracking-tight mb-3 text-slate-800 leading-tight">Complete Payment</h1>
             <p className="text-slate-500 font-medium leading-relaxed text-base">
-              Hello, {userName}. Please complete the transaction below to activate your Larik AI Enterprise license.
+              Hello, {userName}. Please complete the transaction below to activate your {appName} Enterprise license.
             </p>
           </div>
           
@@ -42,14 +47,14 @@ export default function CheckoutClient({ userName }: { userName: string }) {
 
             <div className="space-y-4 mb-8">
               <div className="flex justify-between items-center text-base">
-                <span className="text-slate-500 font-medium">Larik AI License - Lifetime</span>
-                <span className="font-bold text-slate-700">Rp 99.000</span>
+                <span className="text-slate-500 font-medium">{appName} License - Lifetime</span>
+                <span className="font-bold text-slate-700">Rp {totalAmount.toLocaleString("id-ID")}</span>
               </div>
             </div>
 
             <div className="border-t border-dashed border-slate-200 pt-6 flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Total Amount</span>
-              <span className="text-3xl font-black text-emerald-600">Rp 99.000</span>
+              <span className="text-3xl font-black text-emerald-600">Rp {totalAmount.toLocaleString("id-ID")}</span>
             </div>
           </div>
 
@@ -60,7 +65,7 @@ export default function CheckoutClient({ userName }: { userName: string }) {
             </div>
             <div className="pt-1">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Enterprise Security</p>
-              <p className="text-sm font-medium text-slate-600 mt-1.5 leading-relaxed">Transactions are protected by Larik AI advanced encryption.</p>
+              <p className="text-sm font-medium text-slate-600 mt-1.5 leading-relaxed">Transactions are protected by {appName} advanced encryption.</p>
             </div>
           </div>
         </div>
@@ -76,7 +81,6 @@ export default function CheckoutClient({ userName }: { userName: string }) {
             <QRCodeSVG value={dynamicQRIS} size={280} level="H" includeMargin={false} className="w-full h-auto" />
           </div>
           
-          {/* Pembungkus tombol sekarang diset w-full agar merentang penuh tanpa batasan max-width */}
           <div className="w-full flex-1 flex flex-col justify-end">
             {!isUploaded ? (
               <div className="flex flex-col gap-4 w-full">
@@ -84,7 +88,6 @@ export default function CheckoutClient({ userName }: { userName: string }) {
                   <UploadButton
                     endpoint="paymentProof"
                     appearance={{
-                      // Menambahkan !w-full dan max-w-none untuk memaksa pelebaran mutlak
                       button: "bg-emerald-600 hover:bg-emerald-500 text-white font-black py-7 px-4 rounded-2xl transition-all outline-none uppercase tracking-widest text-sm border-none shadow-md focus:ring-4 focus:ring-emerald-200 w-full !w-full max-w-none ut-button:w-full ut-button:flex-1",
                       allowedContent: "hidden",
                       container: "w-full m-0 p-0 flex flex-col items-stretch",
@@ -105,7 +108,9 @@ export default function CheckoutClient({ userName }: { userName: string }) {
                       setIsUploaded(true);
                       toast.success("Receipt uploaded successfully.");
                     }}
-                    onUploadError={() => toast.error("Upload failed. Please try again.")}
+                    onUploadError={(error) => {
+                      toast.error(`Upload failed: ${error.message}`);
+                    }}
                   />
                 </div>
 

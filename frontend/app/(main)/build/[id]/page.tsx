@@ -1,7 +1,7 @@
 "use client";
 
 import { useBuildStatus } from "@/hooks/useBuildStatus";
-import { BuildStatusPanel } from "@/components/BuildStatusPanel";
+import { BuildStatusPanel } from "@/components/build/BuildStatusPanel";
 import { Activity } from "lucide-react";
 
 import Header from "@/components/build/Header";

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useBuildStatus } from "@/hooks/useBuildStatus";
-import { ArrowLeft, LayoutTemplate, Trash2 } from "lucide-react";
+import { ArrowLeft, LayoutTemplate, Trash2, Download } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -99,6 +99,36 @@ export default function DeployPage({ params }: Props) {
     toast.info("Preparing export...");
   };
 
+  const downloadTrainPy = () => {
+    if (!project) return;
+    const isClassification = project.taskType === "classification";
+    const isClustering = project.taskType === "clustering";
+    const featureCols = inputs.map((i: any) => i.name).join("', '");
+    const algoName = project.metrics?.algorithmName || "Optimal Algorithm";
+    const bestParams = project.metrics?.bestParameters || {};
+    
+    const paramsString = Object.entries(bestParams)
+      .map(([k, v]) => {
+        if (v === null) return `${k}=None`;
+        if (typeof v === 'string') return `${k}='${v}'`;
+        return `${k}=${v}`;
+      }).join(", ");
+
+    const trainCode = `import pandas as pd\nimport numpy as np\nimport joblib\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.pipeline import Pipeline\n\nprint("Loading dataset...")\nX = pd.DataFrame(np.random.rand(100, ${inputs.length}), columns=['${featureCols}'])\n${isClassification ? `y = np.random.randint(0, 2, 100)` : !isClustering ? `y = np.random.rand(100) * 100` : ''}\n\nprint("Building pipeline for: ${algoName}...")\npipeline = Pipeline([\n    ('scaler', StandardScaler()),\n    ('model', ModelClass(${paramsString}))\n])\n\n${!isClustering ? `X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\nprint("Training model...")\npipeline.fit(X_train, y_train)\n\nfrom sklearn.metrics import r2_score, accuracy_score\npredictions = pipeline.predict(X_test)\nprint("Model trained successfully. Check predictions array.")\n` : `print("Fitting clustering model...")\npipeline.fit(X)\n`}\n\njoblib.dump(pipeline, 'larik_production_model.pkl')\nprint("Model saved as larik_production_model.pkl")\n`;
+
+    const blob = new Blob([trainCode], { type: "text/x-python" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "larik_reproducible_train.py";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success("Script Python berhasil di-download!");
+  };
+
   if (isLoading || !project) return <div className="min-h-screen flex items-center justify-center bg-zinc-50"><div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" /></div>;
 
   return (
@@ -107,6 +137,11 @@ export default function DeployPage({ params }: Props) {
         <Link href={`/build/${project.id}`} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 text-xs font-bold transition-all group"><ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Build</Link>
         <div className="flex items-center gap-2">
           <button onClick={() => api.builds.delete(project.id).then(() => router.push("/history"))} className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"><Trash2 className="w-4 h-4" /></button>
+          
+          <button onClick={downloadTrainPy} className="px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-[10px] font-black uppercase flex items-center gap-1.5 tracking-widest transition-colors shadow-sm">
+            <Download className="w-3 h-3" /> train.py
+          </button>
+          
           <span className="px-3 py-1 bg-[#10b981] text-white rounded-lg text-[10px] font-black uppercase flex items-center gap-1.5 tracking-widest"><LayoutTemplate className="w-3 h-3" /> Console</span>
         </div>
       </div>
