@@ -52,6 +52,7 @@ export default function DashboardClient({ user }: { user: any }) {
   const [loadTxt, setLoadTxt] = useState("Initializing...");
 
   const [rawRows, setRawRows] = useState<string[][]>([]);
+  const [totalRows, setTotalRows] = useState(0);
   const [previewTab, setPreviewTab] = useState<"before" | "after">("before");
   
   const [encodeLabels, setEncodeLabels] = useState(true);
@@ -88,8 +89,8 @@ export default function DashboardClient({ user }: { user: any }) {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null; 
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("File is too large! Maximum 5 MB.");
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error("File is too large! Maximum 20 MB.");
         e.target.value = "";
         return;
       }
@@ -100,12 +101,17 @@ export default function DashboardClient({ user }: { user: any }) {
       reader.onload = (event) => {
         const text = event.target?.result as string;
         if (text) { 
-          const lines = text.split('\n').filter(l => l.trim());
+          // Handle various line endings (\r\n, \r, \n)
+          const lines = text.split(/\r?\n/).filter(l => l.trim());
+          console.log("DEBUG: Parsed lines count:", lines.length);
+          console.log("DEBUG: Text length (chars):", text.length);
+          
           const headers = lines[0].split(',').map(s => s.trim().replace(/["'\r]/g, ''));
           const rows = lines.slice(1, 6).map(line => line.split(',').map(s => s.trim().replace(/["'\r]/g, '')));
           
           setColumns(headers.filter(Boolean)); 
           setRawRows(rows);
+          setTotalRows(lines.length - 1); 
           setSelectedX([]); 
           setSelectedY(""); 
           setPreviewTab("before");
@@ -168,6 +174,7 @@ export default function DashboardClient({ user }: { user: any }) {
     if (!projectName.trim() || loading) return;
     
     setLoading(true);
+    console.log("DEBUG: Sending file to backend:", dataFile?.name, "Size:", dataFile?.size, "bytes");
     try {
       const job = await api.builds.create({ 
         projectName, 
@@ -180,7 +187,7 @@ export default function DashboardClient({ user }: { user: any }) {
         scalingStrategy, 
         useTuning, 
         hyperparameters: customParams,
-        userId: user?.email || "anonim" 
+        userId: user?.id || "" 
       });
       
       toast.success("Deployment successful.");
@@ -220,6 +227,7 @@ export default function DashboardClient({ user }: { user: any }) {
         <div className="lg:col-span-4 sticky top-20 space-y-4">
            <SummarySidebar 
              projectName={projectName} taskType={taskType} dataFile={dataFile} selectedX={selectedX} selectedY={selectedY}
+             totalRows={totalRows}
            />
         </div>
       </div>

@@ -22,7 +22,7 @@ export const api = {
       formData.append("task_type", body.taskType);
       formData.append("algorithm", body.algorithm);
 
-      if (body.userId) formData.append("userId", body.userId);
+      if (body.userId) formData.append("user_id", body.userId);
 
       if (body.nanStrategy) formData.append("nan_strategy", body.nanStrategy);
       if (body.scalingStrategy) formData.append("scaling_strategy", body.scalingStrategy);

@@ -62,7 +62,7 @@ export default function StepOneConfig({
               <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
               <FileUp className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
               <h4 className="text-zinc-700 font-black text-xs">Drop CSV Dataset here</h4>
-              <p className="text-[9px] font-bold text-zinc-400 mt-1">Maximum 5 MB (Preview 5 Rows)</p>
+              <p className="text-[9px] font-bold text-zinc-400 mt-1">Maximum 20 MB / 150k Rows (Full Data Training)</p>
             </label>
           ) : (
             <div className="space-y-4 animate-in zoom-in-95">
@@ -127,7 +127,7 @@ export default function StepOneConfig({
                     </tbody>
                   </table>
                 </div>
-                <p className="text-[8px] text-zinc-400 font-bold italic text-right mt-1">* Menampilkan 5 baris pertama untuk preview visual.</p>
+              <p className="text-[8px] text-zinc-400 font-bold italic text-right mt-1">* This preview shows 5 rows. Training will use the FULL dataset.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">

@@ -95,7 +95,7 @@ export default function StepTwoOptimize({
                     <Info className="w-5 h-5 text-emerald-500 shrink-0" />
                     <div>
                       <p className="text-[10px] font-black text-zinc-800 uppercase tracking-widest">Auto-Tuning Active</p>
-                      <p className="text-xs font-medium text-zinc-600 mt-1">Sistem akan melakukan tuning secara otomatis untuk semua algoritma menggunakan parameter grid bawaan. Silakan pilih algoritma spesifik di atas jika ingin memasukkan parameter kustom.</p>
+                      <p className="text-xs font-medium text-zinc-600 mt-1">The system will automatically tune all algorithms using the built-in parameter grid. Please select a specific algorithm above if you want to enter custom parameters.</p>
                     </div>
                   </div>
                 ) : (!customParams || Object.keys(customParams).length === 0) ? (
@@ -103,7 +103,7 @@ export default function StepTwoOptimize({
                     <Info className="w-5 h-5 text-zinc-400 shrink-0" />
                     <div>
                       <p className="text-[10px] font-black text-zinc-800 uppercase tracking-widest">No Tuning Required</p>
-                      <p className="text-xs font-medium text-zinc-600 mt-1">Algoritma ini tidak memiliki hyperparameter utama yang perlu dikonfigurasi melalui platform ini.</p>
+                      <p className="text-xs font-medium text-zinc-600 mt-1">This algorithm does not have major hyperparameters that need to be configured through this platform.</p>
                     </div>
                   </div>
                 ) : (

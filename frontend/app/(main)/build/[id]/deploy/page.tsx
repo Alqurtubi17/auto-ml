@@ -163,7 +163,7 @@ export default function DeployPage({ params }: Props) {
                   <button key={t.id} onClick={() => setMockActiveTab(t.id as any)} className={`px-4 py-2 text-[10px] font-black rounded-t-lg transition-colors ${mockActiveTab === t.id ? 'text-white' : 'text-zinc-500'}`} style={{ backgroundColor: mockActiveTab === t.id ? primary : 'transparent' }}>{t.label.toUpperCase()}</button>
                 ))}
               </div>
-              {mockActiveTab === 'eda' ? <EdaTab numericStats={numericStats} getHistogramData={getHistogramData} primary={primary} accent={accent} inputs={inputs} scatterTarget={scatterTarget} getScatterDataWithTrend={getScatterDataWithTrend} rawRows={rawRows} /> :
+              {mockActiveTab === 'eda' ? <EdaTab numericStats={numericStats} getHistogramData={getHistogramData} primary={primary} accent={accent} inputs={inputs} scatterTarget={scatterTarget} getScatterDataWithTrend={getScatterDataWithTrend} rawRows={rawRows} totalRows={project.totalRows} /> :
                mockActiveTab === 'inference' ? <InferenceTab inputs={inputs} setMockForm={setMockForm} handleMockPredict={handleMockPredict} primary={primary} lastPrediction={lastPrediction} /> :
                <TelemetryTab inferenceHistory={inferenceHistory} accent={accent} primary={primary} />}
             </div>

@@ -1,5 +1,3 @@
-// All field names are camelCase to match FastAPI's alias-generated JSON output.
-
 export type TemplateCategory =
   | "saas" | "ecommerce" | "portfolio" | "blog" | "restaurant"
   | "realestate" | "healthcare" | "education" | "agency" | "startup";
@@ -21,38 +19,39 @@ export interface TemplateConfig {
   description: string;
   accent: string;
   sections: TemplateSection[];
-  mlFeatures: string[];      // backend: ml_features  → alias: mlFeatures
-  estimatedBuildSec: number;        // backend: estimated_build_sec → alias: estimatedBuildSec
+  mlFeatures: string[];
+  estimatedBuildSec: number;
 }
 
 export interface MLMetrics {
   accuracy: number | null;
-  latencyMs: number | null;          // backend: latency_ms → alias: latencyMs
-  modelSize: string | null;          // backend: model_size → alias: modelSize
+  latencyMs: number | null;
+  modelSize: string | null;
   algorithmName?: string | null;
   bestParameters?: Record<string, any> | null;
   chartData?: Array<{ name: string; value: number }> | null;
   detailedMetrics?: Array<{ name: string; value: number }> | null;
   scatterData?: Array<{ x: number; y: number; cluster: number }> | null;
+  totalRows?: number | null;
 }
 
 export interface BuildJob {
   id: string;
-  templateId: string;               // backend: template_id → alias: templateId
+  templateId: string;
   status: BuildStatus;
   progress: number;
-  createdAt: string;               // backend: created_at → alias: createdAt
-  completedAt: string | null;        // backend: completed_at → alias: completedAt
-  outputUrl: string | null;        // backend: output_url → alias: outputUrl
+  createdAt: string;
+  completedAt: string | null;
+  outputUrl: string | null;
   logs: string[];
-  mlMetrics: MLMetrics | null;     // backend: ml_metrics → alias: mlMetrics
+  mlMetrics: MLMetrics | null;
 }
 
 export interface GenerateRequest {
-  templateId: string;           // backend: template_id → alias: templateId
-  projectName: string;           // backend: project_name → alias: projectName
-  primaryColor: string;           // backend: primary_color → alias: primaryColor
-  userDescription: string;           // backend: user_description → alias: userDescription
+  templateId: string;
+  projectName: string;
+  primaryColor: string;
+  userDescription: string;
   dataFile?: string;
 }
 
@@ -60,6 +59,7 @@ export type MLTaskType = "classification" | "regression" | "clustering";
 
 export interface MLProject {
   id: string;
+  userId: string;
   projectName: string;
   taskType: MLTaskType;
   status: BuildStatus;
@@ -72,6 +72,7 @@ export interface MLProject {
   logs: string[];
   metrics: MLMetrics | null;
   accuracy?: number | null;
+  totalRows?: number | null;
 }
 
 export interface GenerateMLRequest {

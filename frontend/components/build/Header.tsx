@@ -13,7 +13,16 @@ export default function Header({ project, algo }: any) {
         </p>
       </div>
       <div className="flex gap-2">
-         <a href={`/api/v1/builds/${project.id}/model`} className="flex items-center gap-1.5 px-4 py-2 bg-zinc-900 text-white rounded-lg text-[10px] font-black hover:bg-zinc-800 transition-all uppercase tracking-widest shadow-md">
+         <a 
+           href={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/v1/builds/${project.id}/trainer`} 
+           className="flex items-center gap-1.5 px-4 py-2 bg-white border border-zinc-200 text-zinc-900 rounded-lg text-[10px] font-black hover:bg-zinc-50 transition-all uppercase tracking-widest shadow-sm"
+         >
+           <Download className="w-3 h-3" /> Download trainer.py
+         </a>
+         <a 
+           href={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/v1/builds/${project.id}/model`} 
+           className="flex items-center gap-1.5 px-4 py-2 bg-zinc-900 text-white rounded-lg text-[10px] font-black hover:bg-zinc-800 transition-all uppercase tracking-widest shadow-md"
+         >
            <Download className="w-3 h-3" /> Download .joblib
          </a>
       </div>

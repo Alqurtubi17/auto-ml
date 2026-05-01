@@ -21,8 +21,7 @@ export default function ChartsPanel({ project, isClustering, scatterData, unique
   const [isMounted, setIsMounted] = useState(false);
   
   useEffect(() => {
-    const timer = setTimeout(() => setIsMounted(true), 150);
-    return () => clearTimeout(timer);
+    setIsMounted(true);
   }, []);
 
   const algoComparisonData = useMemo(() => {
@@ -68,15 +67,15 @@ export default function ChartsPanel({ project, isClustering, scatterData, unique
              <h3 className="text-xs font-black text-zinc-800 flex items-center gap-1.5"><BarChart4 className="w-4 h-4 text-emerald-500" /> Feature Importance</h3>
              <p className="text-[9px] font-bold text-zinc-400">Impact of each data column on AI predictions.</p>
           </div>
-          <div className="w-full" style={{ height: '220px' }}>
+          <div className="w-full" style={{ height: '220px', minWidth: '1px', minHeight: '1px' }}>
             {isMounted && project.metrics?.chartData?.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={project.metrics.chartData} margin={{ top: 15, right: 10, bottom: 0, left: 0 }}>
                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" />
                    <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} tick={{fill: '#71717a', fontWeight: 'bold'}} />
                    <Tooltip cursor={{fill: '#f4f4f5'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '11px', padding: '4px 8px' }} />
                    <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40}>
-                     <LabelList dataKey="value" position="top" formatter={(val: number) => val.toFixed(2)} fontSize={9} fontWeight={800} fill="#18181b" />
+                     <LabelList dataKey="value" position="top" formatter={(val: any) => val ? Number(val).toFixed(2) : "0.00"} fontSize={9} fontWeight={800} fill="#18181b" />
                    </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -91,9 +90,9 @@ export default function ChartsPanel({ project, isClustering, scatterData, unique
              <h3 className="text-xs font-black text-zinc-800 flex items-center gap-1.5"><Activity className="w-4 h-4 text-emerald-500" /> Detailed Evaluation</h3>
              <p className="text-[9px] font-bold text-zinc-400">Detailed statistical values of current AI performance.</p>
           </div>
-          <div className="w-full" style={{ height: '220px' }}>
+          <div className="w-full" style={{ height: '220px', minWidth: '1px', minHeight: '1px' }}>
             {isMounted && project.metrics?.detailedMetrics?.length > 0 ? (
-               <ResponsiveContainer width="100%" height="100%">
+               <ResponsiveContainer width="100%" height={220}>
                  <BarChart data={project.metrics.detailedMetrics} layout="vertical" margin={{ top: 0, right: 30, bottom: 0, left: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f4f4f5" />
                     <XAxis type="number" fontSize={9} axisLine={false} tickLine={false} tick={{fill: '#71717a'}} domain={[0, 'auto']} />
@@ -103,7 +102,7 @@ export default function ChartsPanel({ project, isClustering, scatterData, unique
                       {project.metrics.detailedMetrics.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#18181b' : '#3f3f46'} />
                       ))}
-                      <LabelList dataKey="value" position="right" formatter={(val: number) => val.toFixed(2)} fontSize={9} fontWeight={800} fill="#71717a" />
+                      <LabelList dataKey="value" position="right" formatter={(val: any) => val ? Number(val).toFixed(2) : "0.00"} fontSize={9} fontWeight={800} fill="#71717a" />
                     </Bar>
                  </BarChart>
                </ResponsiveContainer>
@@ -119,13 +118,18 @@ export default function ChartsPanel({ project, isClustering, scatterData, unique
             <h3 className="text-xs font-black text-zinc-800 flex items-center gap-1.5"><LineChartIcon className="w-4 h-4 text-emerald-500" /> Algorithm Evaluation Overview</h3>
             <p className="text-[9px] font-bold text-zinc-400">Comparison of algorithms across multiple evaluation metrics.</p>
          </div>
-         <div className="w-full" style={{ height: '260px' }}>
+         <div className="w-full" style={{ height: '260px', minWidth: '1px', minHeight: '1px' }}>
            {isMounted && algoComparisonData.length > 0 ? (
-             <ResponsiveContainer width="100%" height="100%">
+             <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={algoComparisonData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
                   <XAxis dataKey="metricName" fontSize={9} tickLine={false} axisLine={false} />
-                  <YAxis fontSize={9} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
+                  <YAxis 
+                    fontSize={9} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    domain={project?.taskType === "regression" ? [0, "auto"] : [0, 1]} 
+                  />
                   <Tooltip cursor={{fill: '#f4f4f5'}} contentStyle={{ borderRadius: '8px', border: '1px solid #e4e4e7', fontSize: '11px', padding: '4px 8px' }} />
                   <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
                   {algosToRender.map((a, i) => (
@@ -145,9 +149,9 @@ export default function ChartsPanel({ project, isClustering, scatterData, unique
                <h3 className="text-xs font-black text-zinc-800 flex items-center gap-1.5"><ScatterIcon className="w-4 h-4 text-emerald-500" /> Cluster Data Map (2D Projection)</h3>
                <p className="text-[9px] font-bold text-zinc-400">Visual map of how AI separates data into groups (Clusters).</p>
             </div>
-            <div className="w-full" style={{ height: '260px' }}>
+            <div className="w-full" style={{ height: '260px', minWidth: '1px', minHeight: '1px' }}>
               {isMounted && scatterData?.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={260}>
                   <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: -20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f4f4f5" />
                     <XAxis type="number" dataKey="x" name="Dimension 1" fontSize={9} tickLine={false} axisLine={false} tick={{fill: '#71717a'}} />

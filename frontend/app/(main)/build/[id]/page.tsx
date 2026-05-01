@@ -11,6 +11,7 @@ import ChartsPanel from "@/components/build/ChartsPanel";
 import PythonSdkWidget from "@/components/build/PythonSdkWidget";
 import ConsoleLinkPanel from "@/components/build/ConsoleLinkPanel";
 import HyperparametersPanel from "@/components/build/HyperparametersPanel";
+import TrainerGuidePanel from "@/components/build/TrainerGuidePanel";
 
 interface Props { params: { id: string } }
 
@@ -56,6 +57,7 @@ export default function DeploymentPage({ params }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-4 space-y-4">
           <InferencePanel project={project} isClustering={isClustering} />
+          <TrainerGuidePanel projectName={project.projectName} />
           {isClustering && <PythonSdkWidget project={project} />}
         </div>
         <div className="lg:col-span-8 space-y-4">

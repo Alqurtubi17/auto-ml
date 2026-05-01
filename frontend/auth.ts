@@ -23,56 +23,75 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) {
-                    throw new Error("Invalid credentials");
-                }
+  async authorize(credentials) {
+    if (!credentials?.email || !credentials?.password) {
+      throw new Error("Invalid credentials");
+    }
 
-                const user = await prisma.user.findUnique({
-                    where: {
-                        email: credentials.email as string,
-                    },
-                });
+    // Defensive retry for cold starts
+    let user = null;
+    for (let i = 0; i < 3; i++) {
+      try {
+        user = await prisma.user.findUnique({
+          where: { email: credentials.email as string },
+        });
+        break;
+      } catch (err) {
+        if (i === 2) throw err;
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
 
-                if (!user || !user.password) {
-                    throw new Error("Invalid credentials");
-                }
+    if (!user || !user.password) {
+      throw new Error("Invalid credentials");
+    }
 
-                const isCorrectPassword = await bcrypt.compare(
-                    credentials.password as string,
-                    user.password
-                );
+    const isCorrectPassword = await bcrypt.compare(
+      credentials.password as string,
+      user.password
+    );
 
-                if (!isCorrectPassword) {
-                    throw new Error("Invalid credentials");
-                }
+    if (!isCorrectPassword) {
+      throw new Error("Invalid credentials");
+    }
 
-                return user;
-            },
-        }),
-    ],
-    callbacks: {
-        async session({ token, session }) {
-            if (token.sub && session.user) {
-                session.user.id = token.sub;
-            }
-            if (token.role && session.user) {
-                session.user.role = token.role as string;
-            }
-            return session;
-        },
-        async jwt({ token, user }) {
-            if (!token.sub) return token;
+    return user;
+  },
+}),
+],
+callbacks: {
+async session({ token, session }) {
+  if (token.sub && session.user) {
+    session.user.id = token.sub;
+  }
+  if (token.role && session.user) {
+    session.user.role = token.role as string;
+  }
+  return session;
+},
+async jwt({ token, user }) {
+  if (!token.sub) return token;
 
-            const existingUser = await prisma.user.findUnique({
-                where: { id: token.sub },
-            });
+  // Defensive retry for cold starts
+  let existingUser = null;
+  for (let i = 0; i < 3; i++) {
+    try {
+      existingUser = await prisma.user.findUnique({
+        where: { id: token.sub },
+      });
+      break;
+    } catch (err) {
+      if (i === 2) {
+        console.error("JWT Database Error:", err);
+        return token;
+      }
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
 
-            if (!existingUser) return token;
-
-            token.role = existingUser.role;
-
-            return token;
-        },
-    },
+  if (!existingUser) return token;
+  token.role = existingUser.role;
+  return token;
+},
+},
 });

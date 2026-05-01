@@ -1,6 +1,5 @@
 "use client";
 
-import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import { SWRProvider } from "@/components/SWRProvider";
 import Link from "next/link";
@@ -11,13 +10,11 @@ import {
   LayoutGrid, Archive, Settings, 
   Menu, X, Blocks, LogOut, ShieldCheck
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { fetcher } from "@/lib/api";
 import { MLProject } from "@/types";
-import { Toaster } from "sonner";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const mainNav = [
   { label: "Studio Center", href: "/dashboards", icon: LayoutGrid },
@@ -76,6 +73,11 @@ const NavLink = ({ item, pathname, onClick, dense = false }: any) => {
 export default function MainLayoutClient({ children, user }: { children: React.ReactNode, user?: any }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const userName = user?.name || "Pelanggan";
   const userInitials = userName.substring(0, 2).toUpperCase();
@@ -85,14 +87,13 @@ export default function MainLayoutClient({ children, user }: { children: React.R
   const isAdminActive = pathname.startsWith("/admin");
 
   return (
-    <div className={`antialiased font-sans text-zinc-900 selection:bg-emerald-200 selection:text-emerald-950 bg-zinc-50 overflow-x-hidden min-h-screen ${inter.variable}`}>
+    <div className="antialiased font-sans text-zinc-900 selection:bg-emerald-200 selection:text-emerald-950 bg-zinc-50 overflow-x-hidden min-h-screen">
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] bg-emerald-200/30 rounded-full blur-[100px] mix-blend-multiply opacity-60 animate-pulse" style={{ animationDuration: '8s' }} />
         <div className="absolute bottom-[-10%] right-[-5%] w-[30rem] h-[30rem] bg-emerald-300/20 rounded-full blur-[80px] mix-blend-multiply opacity-50" />
       </div>
 
       <SWRProvider>
-        <Toaster position="top-center" richColors />
         <div className="flex min-h-screen relative z-10">
           
           <aside className="hidden lg:flex w-64 flex-col bg-white/60 backdrop-blur-2xl border-r border-zinc-200/50 fixed inset-y-0 left-0 z-50">
@@ -112,7 +113,7 @@ export default function MainLayoutClient({ children, user }: { children: React.R
                 {mainNav.map(item => <NavLink key={item.href} item={item} pathname={pathname} />)}
               </div>
               
-              <Feed close={() => setIsOpen(false)} pathname={pathname} />
+              {mounted && <Feed close={() => setIsOpen(false)} pathname={pathname} />}
 
               <div className="mt-8 pt-4 border-t border-zinc-200/50 px-1 space-y-1">
                  {secondaryNav.map(item => <NavLink key={item.href} item={item} pathname={pathname} dense />)}
@@ -177,7 +178,7 @@ export default function MainLayoutClient({ children, user }: { children: React.R
               </div>
               <nav className="flex-1 p-3 space-y-1">
                 {mainNav.map(item => <NavLink key={item.href} item={item} pathname={pathname} onClick={() => setIsOpen(false)} />)}
-                <Feed close={() => setIsOpen(false)} pathname={pathname} />
+                {mounted && <Feed close={() => setIsOpen(false)} pathname={pathname} />}
                 
                 {isAdmin && (
                   <div className="mt-4 pt-4 border-t border-emerald-100 px-1">

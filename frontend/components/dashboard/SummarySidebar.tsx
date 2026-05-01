@@ -1,6 +1,6 @@
 import { Target, Info } from "lucide-react";
 
-export default function SummarySidebar({ projectName, taskType, dataFile, selectedX, selectedY }: any) {
+export default function SummarySidebar({ projectName, taskType, dataFile, selectedX, selectedY, totalRows }: any) {
   return (
     <>
       <div className="bg-white/70 backdrop-blur-xl border border-white p-5 rounded-[1.5rem] shadow-sm space-y-3">
@@ -9,6 +9,7 @@ export default function SummarySidebar({ projectName, taskType, dataFile, select
             <SummaryRow label="Identity" value={projectName || "Pending..."} />
             <SummaryRow label="Architecture" value={taskType.toUpperCase()} />
             <SummaryRow label="Data Status" value={dataFile ? "CSV Validated" : "Awaiting..."} />
+            <SummaryRow label="Dataset Size" value={totalRows > 0 ? `${totalRows.toLocaleString()} Rows` : "N/A"} />
             <SummaryRow label="Features Extracted" value={`${selectedX.length} Cols`} />
             <SummaryRow label="Target Objective" value={selectedY || "None"} />
         </div>
